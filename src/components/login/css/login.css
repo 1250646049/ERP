@@ -1,0 +1,70 @@
+.login {
+  width: 100vw;
+  height: 100vh;
+  background: url(../img/CFL1.png) center;
+  background-size: 100% 100%;
+}
+.login .yanzheng {
+  width: 400px;
+  height: 450px;
+  background: white;
+  box-shadow: 0 0 3px 2px #ccc;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  padding: 10px ;
+  overflow: hidden;
+}
+.login .yanzheng .code {
+  width: 120px;
+  height: 32px;
+  background: blue;
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+.login .yanzheng .ant-card-head {
+  text-align: center;
+  height: 40px;
+}
+.login .yanzheng .ant-card-head .ant-card-head-title {
+  padding: 10px 0;
+}
+.login .yanzheng .ant-card-body {
+  height: 96px;
+  padding: 4px 0 0px 8px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.login .yanzheng .ant-card-body::-webkit-scrollbar {
+  width: 0;
+}
+.login .yanzheng header {
+  font-size: 24px;
+  text-align: center;
+  position: relative;
+  color: #049bdf;
+}
+.login .yanzheng header::after {
+  content: "";
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  height: 1px;
+  background: #ccc;
+  bottom: -8px;
+}
+.login .yanzheng .form {
+  margin-top: 20px;
+}
+.login .yanzheng .gongao {
+  margin-top: 15px;
+  width: 100%;
+  height: 160px;
+}
+.login .yanzheng .gongao p {
+  height: 18px;
+  line-height: 18px;
+}
