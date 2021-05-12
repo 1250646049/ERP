@@ -21,6 +21,14 @@ export default class Category extends Component {
                     }}>比价节控报表</Menu.Item>
 
                 </SubMenu>
+
+                <SubMenu key="wuliudaohuo" icon={<UserOutlined />} defaultSelectedKeys={['3']} title="物流到货">
+                    <Menu.Item key="3" onClick={()=>{
+                        PubSub.publish("tiaozhuan","/main/wuliudaohuo")
+                        
+                    }}>物流到货发送</Menu.Item>
+
+                </SubMenu>
             </Menu>
 
         )

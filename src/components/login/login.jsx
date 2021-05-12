@@ -4,9 +4,50 @@ import Loading from "../../page/loading/loading"
 import { Button, Form, Input, Card, message} from "antd"
 import { connect } from "react-redux"
 import { operationUser } from "../../redux/action/login"
-import "./css/login.css"
-class Login extends Component {
 
+import "./css/login.css"
+// 引入请求
+import {getYzm,toLogin,toAutoLogin} from "../../axios/index"
+class Login extends Component {
+    state={
+        yzm:""
+    }
+    componentDidMount(){
+        this.initData()
+    }
+    // 初始化登录状态
+    initData=()=>{
+        this.isLoging()
+        this.initYzm()
+        
+    }
+    // 判断是否登录
+    isLoging= async()=>{
+        if(localStorage.getItem("_token")){
+            try{
+                let data=await toAutoLogin(localStorage.getItem("_token"))
+                if(!data['error']){
+                    this.props.history.replace("/main")
+                }
+            }catch{
+                console.log("授权错误！")
+            }
+        }
+
+
+    }
+    // 初始化验证码状态
+    initYzm=async ()=>{
+        // 发送验证码请求
+       try{
+        let data= await getYzm()
+        this.setState({
+            yzm:data['data']
+        })
+       }catch{
+         message.error("验证码请求出错！")
+       }
+    }
     // 用户登录
     onLogin = async () => {
         // 判断输入是否正确
@@ -15,7 +56,23 @@ class Login extends Component {
             /**
              * 服务器校验逻辑
              */
-            this.props.operationUser(result)
+             let loginResult= await toLogin(result)
+             
+             if(loginResult['status']){
+                 let token=loginResult['data']['token']
+                //  设置本地缓存
+                 localStorage.setItem("_token",token)
+                 delete loginResult['token']
+                this.props.operationUser(loginResult)
+                message.success(`${loginResult['data']['name']} 恭喜您登录成功！`)
+                // 初始化验证码
+                this.initYzm()
+                this.props.history.replace("/main")
+             }else {
+                 this.initYzm()
+                 message.error(loginResult['message'])
+             }
+            
         } catch {
             message.error("抱歉，请将内容填写规范！")
         }
@@ -25,7 +82,7 @@ class Login extends Component {
     }
 
     render() {
-
+        const {yzm}=this.state
         return (
             <div className="login">
                 {/* 表单验证 */}
@@ -66,7 +123,7 @@ class Login extends Component {
                                     }
                                 ]}
                             >
-                                <Input></Input>
+                                <Input.Password></Input.Password>
                             </Form.Item>
 
                             {/* 验证码 */}
@@ -82,10 +139,15 @@ class Login extends Component {
                                 ]}
                             
                             >
-                                <Input style={{width:140}}></Input> <span className="code">验证码</span>
-                               
+                                <Input style={{width:140}}></Input> 
+                      
                             </Form.Item>
-                              
+                            <span onClick={
+                                    ()=>{
+                                        this.initYzm()
+                                    }
+                                } className="code" dangerouslySetInnerHTML={{__html:yzm}}></span>
+                               
                             {/* 提交按钮 */}
                             <Form.Item
                                 style={{ textAlign: "center" }}

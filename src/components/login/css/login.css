@@ -20,9 +20,10 @@
 .login .yanzheng .code {
   width: 120px;
   height: 32px;
-  background: blue;
-  display: inline-block;
-  vertical-align: middle;
+  position: absolute;
+  right: 60px;
+  top: 172px;
+  vertical-align: top;
   margin-top: -2px;
 }
 .login .yanzheng .ant-card-head {
