@@ -87,7 +87,7 @@ class Login extends Component {
             <div className="login">
                 {/* 表单验证 */}
                 <div className="yanzheng">
-                    <header>CFL ERP报表系统</header>
+                    <header>CFL ERP功能系统</header>
                     {/* 动画 */}
                     <Loading width={50} height={50} spend={2} />
                     {/* form登录表单 */}
@@ -103,7 +103,7 @@ class Login extends Component {
                                 rules={
                                     [
                                         {
-                                            required: true, message: "请务必输入您的OA报表系统的工号"
+                                            required: true, message: "请务必输入您的OA功能系统的工号"
                                         }
                                     ]
                                 }

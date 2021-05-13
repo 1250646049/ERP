@@ -73,7 +73,7 @@ export default class Main extends Component {
                     <Layout className="site-layout">
                         <Header className="site-layout-background header" style={{ padding: 0, width: "100vw", position: "fixed", left: 0, right: 0,overflow:"hidden" }} >
                             {/* logo */}
-                            <div className="logo">CFL ERP综合报表功能管理系统</div>
+                            <div className="logo">CFL ERP综合功能管理系统</div>
                             {/* 头部导航 */}
                             <div className="topCategory">
                             <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']} className="topCategory">
@@ -97,7 +97,7 @@ export default class Main extends Component {
                                
                              </div>
                         </Content>
-                        <Footer style={{ textAlign: 'center' }}>CFL -ERP报表功能管理系统</Footer>
+                        <Footer style={{ textAlign: 'center' }}>CFL -ERP功能管理系统</Footer>
                     </Layout>
                 </Layout>
                 </Router>

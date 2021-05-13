@@ -12,3 +12,10 @@ export const toLogin=({yzm,password,username})=>axios.post("/user/login",{yzm,pa
 // 自动登录
 
 export const toAutoLogin=(token)=>axios.post("/user/auto",{token})
+
+// 物流到货预测
+export const getEmail=()=>axios.get("/wuliu/getEmail")
+
+
+// 修改物流到货预测
+export const setEmail=(data)=>axios.post("/wuliu/setEmail",data)
