@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Layout, Menu, message} from 'antd';
+import { Layout, Menu, message,Drawer,Card,Button} from 'antd';
 import Category from "../../page/Sider/category"
 import Bjprice from "../../page/price/bjprice/bjprice"
 import {BrowserRouter as Router,Switch,Route} from "react-router-dom"
@@ -17,7 +17,8 @@ export default class Main extends Component {
     state = {
         collapsed: false,
         currentPath:"",
-        user:{}
+        user:{},
+        drawerShow:false
     };
 
     componentDidMount(){
@@ -46,10 +47,18 @@ export default class Main extends Component {
             message.error("授权错误，请重新登录！")
             this.props.history.replace("/login")
         }
-         
+        //  路由跳转
         PubSub.subscribe("tiaozhuan",(_,data)=>{
             this.props.history.replace(data)
             window.location.reload()
+        })
+        // 操作手册下载
+        PubSub.subscribe("downWord",(_)=>{
+            this.setState({
+                drawerShow:true
+            })
+
+
         })
 
     }
@@ -58,24 +67,27 @@ export default class Main extends Component {
         console.log(collapsed);
         this.setState({ collapsed });
     };
+    componentWillUnmount(){
+        PubSub.unsubscribe("downWord")
+    }
     render() {
 
-        const { collapsed,user } = this.state;
+        const { collapsed,user,drawerShow } = this.state;
         return (
             <div className="main">
                 {/* 总布局 */}
                 <Router>
-                <Layout style={{ minHeight: '100vh' }}>
-                    <Sider collapsible collapsed={collapsed} onCollapse={this.onCollapse} style={{ height: "calc(100vh - 64px)", marginTop: 64 }}>
+                <Layout style={{ minHeight: '100vh'}}>
+                    <Sider collapsible collapsed={collapsed} onCollapse={this.onCollapse} style={{marginTop:64,width:200,position:'fixed',top:0,bottom:0}}>
                         
                         <Category></Category>
                     </Sider>
                     <Layout className="site-layout">
-                        <Header className="site-layout-background header" style={{ padding: 0, width: "100vw", position: "fixed", left: 0, right: 0,overflow:"hidden" }} >
+                        <Header className="site-layout-background header" style={{ padding: 0, width: "100vw", position: "fixed",zIndex:999, left: 0, right: 0,overflow:"hidden" }} >
                             {/* logo */}
                             <div className="logo">CFL ERP综合功能管理系统</div>
                             {/* 头部导航 */}
-                            <div className="topCategory">
+                            <div className="topCategory" >
                             <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']} className="topCategory">
                                 <Menu.Item key="1">工作</Menu.Item>
                              </Menu>
@@ -85,7 +97,7 @@ export default class Main extends Component {
                                 <User user={user}></User>
                             </div>
                         </Header>
-                        <Content style={{ margin: '50px 16px 0 16px' }}>
+                        <Content style={{ margin: '50px 16px 0 16px',overflowY:'scroll',paddingLeft:200 }} >
                            
                             <div className="site-layout-background" style={{ padding: 24}}>
                                {/* center */}
@@ -101,6 +113,26 @@ export default class Main extends Component {
                     </Layout>
                 </Layout>
                 </Router>
+            
+                <div className="utils">
+                    <Drawer
+                    title="功能操作手册下载"
+                    visible={drawerShow}
+                    onClose={()=>{
+                        this.setState({
+                            drawerShow:false
+                        })
+                    }}
+                    >
+                       <Card
+                       title="6666"
+                       >
+                        <Button  type="link">
+                          DOWN    
+                        </Button>   
+                        </Card> 
+                    </Drawer>
+                </div>
             </div>
         )
     }

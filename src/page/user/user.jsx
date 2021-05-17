@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Menu, Dropdown, Avatar } from "antd"
 import { UserOutlined } from '@ant-design/icons';
+import PubSub from 'pubsub-js';
 
 
 
@@ -22,6 +23,10 @@ export default class User extends Component {
   componentWillUnmount(){
     this.flag=false
   }
+  // 下载
+  onDownWord=()=>{
+    PubSub.publish("downWord")
+  }
   render() {
     const { user } = this.state
     // 用户功能
@@ -29,6 +34,10 @@ export default class User extends Component {
       <Menu>
         <Menu.Item>
           <span>{user && user['name']}</span>
+        </Menu.Item>
+        {/* 操作手册下载 */}
+        <Menu.Item>
+          <span onClick={this.onDownWord}>操作手册下载</span>
         </Menu.Item>
         <Menu.Item>
           <span onClick={()=>{

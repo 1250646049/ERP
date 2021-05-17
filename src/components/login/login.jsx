@@ -91,7 +91,7 @@ class Login extends Component {
                     {/* 动画 */}
                     <Loading width={50} height={50} spend={2} />
                     {/* form登录表单 */}
-                    <div className="form">
+                    <div className="form ">
                         <Form
                             ref={react => this.formRef = react}
                             labelCol={{ span: 4 }}
@@ -146,7 +146,8 @@ class Login extends Component {
                                     ()=>{
                                         this.initYzm()
                                     }
-                                } className="code" dangerouslySetInnerHTML={{__html:yzm}}></span>
+                                    
+                                } className="code animate__animated animate__bounceInUp  animate__delay-2s" dangerouslySetInnerHTML={{__html:yzm}} ></span>
                                
                             {/* 提交按钮 */}
                             <Form.Item

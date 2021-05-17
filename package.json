@@ -10,6 +10,7 @@
     "antd": "^4.15.5",
     "axios": "^0.21.1",
     "customize-cra": "^1.0.0",
+    "js-export-excel": "^1.1.4",
     "less": "^4.1.1",
     "less-loader": "^8.1.1",
     "lottie-react": "^2.1.0",

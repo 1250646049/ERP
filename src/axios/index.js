@@ -19,3 +19,12 @@ export const getEmail=()=>axios.get("/wuliu/getEmail")
 
 // 修改物流到货预测
 export const setEmail=(data)=>axios.post("/wuliu/setEmail",data)
+
+
+// 比价查询
+
+export const getAllBJPrice=(page,number)=>axios.get("/price/bijia",{params:{page,number}})
+
+// 比价筛选
+
+export const getPriceLike=(type,name)=>axios.get("/price/likeSearch",{params:{type,name}})
