@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
-import {Table,Input, Select, Button,Tag} from "antd"
+import {Table,Input, Select,Tag} from "antd"
 import {getAllBJPrice,getPriceLike} from "../../../axios/index"
+// socket io
+
 // 导出excel表格数据
 
 
@@ -14,15 +16,18 @@ export default class Bjprice extends Component {
         searchType:"cinvcode"
 
     }
+
+  
     // 初始化数据
 
     initData=async(page=1,number=10)=>{
+       
         let result=await getAllBJPrice(page,number)
 
         this.setState({
             data:result['list'],
             size:result['size']
-        })
+        }) 
     }
     componentDidMount(){
         this.initData()
@@ -120,7 +125,7 @@ export default class Bjprice extends Component {
                         <Option value="yuanjia">原价</Option>
                         <Option value="xianjia">现价</Option>
                         <Option value="jieyue">节约</Option>
-                    </Select>
+                    </Select> 
                     <Input.Search
                    style={{width:240}}
                    onSearch={this.onSearch}
@@ -128,7 +133,7 @@ export default class Bjprice extends Component {
                     
                     </Input.Search>
 
-                    <Button onClick={this.exportExcel}> 点击导出</Button>
+                  
                 </div>
                 <div className="center">
                     <Table

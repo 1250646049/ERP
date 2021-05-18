@@ -28,3 +28,16 @@ export const getAllBJPrice=(page,number)=>axios.get("/price/bijia",{params:{page
 // 比价筛选
 
 export const getPriceLike=(type,name)=>axios.get("/price/likeSearch",{params:{type,name}})
+
+
+// 查询用户操作手册
+export const getAllWords=()=>axios.get("/user/word")
+
+
+// 查询用户部门 分类管理
+
+export const getAllUserDepart=()=>axios.get("/user/departs")
+
+// 查询部门用户
+
+export const getAllDepartUser=(name)=>axios.get("/depart/user",{params:{name}})

@@ -13,8 +13,17 @@ export default class Category extends Component {
 
     render() {
         return (
-            <Menu theme="dark" selectedKeys={['sub1']} mode="inline" defaultOpenKeys={['gonzuo']}>
-                <SubMenu key="gonzuo" icon={<UserOutlined />} defaultSelectedKeys={['3']} title="工作功能">
+            <Menu theme="dark"  mode="inline" >
+                {/* 用户结构 */}
+                <SubMenu key="ptguanli" icon={<UserOutlined />}  title="平台管理">
+                    <Menu.Item key="userMange" onClick={()=>{
+                        PubSub.publish("tiaozhuan","/main/userMange")
+
+                    }}>用户管理</Menu.Item>
+ 
+                </SubMenu>           
+
+                <SubMenu key="gonzuo" icon={<UserOutlined />}  title="工作功能">
                     <Menu.Item key="bjprice" onClick={()=>{
                         PubSub.publish("tiaozhuan","/main/bjprice")
 
