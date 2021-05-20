@@ -6,7 +6,7 @@ import { Switch, Route} from "react-router-dom"
 import User from "../../page/user/user"
 import PubSub from "pubsub-js"
 import "./css/main.css"
-import { toAutoLogin, getAllWords } from "../../axios/index"
+import { toAutoLogin, getAllWords,getAllOuthor } from "../../axios/index"
 import WuliuDaohuo from "../../page/wuliu/wuliu"
 // 导入服务器URL
 import UserMange from "../../page/userMange/userMange"
@@ -43,23 +43,37 @@ const { Header, Content, Footer, Sider } = Layout;
                 throw new Error("error")
             } else {
                 //    设置用户
-                this.setState({
+                this.setState({ 
                     user: data
+                },()=>{
+                    console.log(this.state.user)
                 })
             }
         } catch {
             message.error("授权错误，请重新登录！")
-            this.props.history.replace("/login")
+           return this.props.history.replace("/login")
             
         }
         //  路由跳转
-        PubSub.subscribe("tiaozhuan", (_, data) => {
-            this.props.history.replace(data)
-           
-             this.setState({
-                 currentObj:{...this.props.location}
-             })
-            
+        PubSub.subscribe("tiaozhuan", async(_, data) => {
+            const {path,author}=data
+            const {depart,auth}=this.state.user
+            // 判断是否为超级管理员
+            if(depart==='ERP' || auth===1){
+               return this.props.history.replace(path)
+            }else {
+                
+              try{
+                let {list}=  await getAllOuthor(depart,author)
+                if(JSON.stringify(list)==='{}'){
+                    return message.error("抱歉，您无权限访问此模块，请联系管理员授权！")
+                }
+                    this.props.history.replace(path)
+
+              }catch{
+                  message.error("抱歉访问出错啦！")
+              }
+            }
         })
         // 操作手册下载
         PubSub.subscribe("downWord", async (_) => {
@@ -80,6 +94,7 @@ const { Header, Content, Footer, Sider } = Layout;
     };
     componentWillUnmount() {
         PubSub.unsubscribe("downWord")
+        PubSub.unsubscribe('tiaozhuan')
     }
     // downWords 下载指定的word
     downWords=(url)=>{

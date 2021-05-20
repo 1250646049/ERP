@@ -33,17 +33,17 @@ export default class User extends Component {
     const menu = (
       <Menu>
         <Menu.Item>
-          <span>{user && user['name']}</span>
+          <div style={{textAlign:'center'}}>{user && user['name']}</div>
         </Menu.Item>
         {/* 操作手册下载 */}
         <Menu.Item>
-          <span onClick={this.onDownWord}>操作手册下载</span>
+          <div style={{textAlign:'center'}} onClick={this.onDownWord}>操作手册下载</div>
         </Menu.Item>
         <Menu.Item>
-          <span onClick={()=>{
+          <div style={{textAlign:'center'}} onClick={()=>{
              localStorage.clear("_token")
               window.location.reload()
-          }}>退出</span>
+          }}>退出登录</div>
         </Menu.Item>
 
       </Menu>

@@ -41,3 +41,29 @@ export const getAllUserDepart=()=>axios.get("/user/departs")
 // 查询部门用户
 
 export const getAllDepartUser=(name)=>axios.get("/depart/user",{params:{name}})
+
+
+// 权限控制
+
+export const getAllOuthor=(depart,author)=>axios.get("/user/oathor",{params:{depart,author}})
+
+// 获取所有菜单项目
+
+export const getAllCaidan=()=>axios.get('/depart/caidan')
+
+// 查询部门所对应的权限
+
+export const getAllAuthor=(depart)=>axios.get("/user2oathor",{params:{depart}})
+
+
+// 更新部门权限
+
+export const setAllOauthor=(depart,oauthor)=>axios.get("/updateOathor",{params:{depart,oauthor}})
+
+// 删除部门权限
+
+export const deleteOauthor=(depart)=>axios.get("/deleteOauthor",{params:{depart}})
+
+
+// 添加用户
+export const addUserDepart=(data)=>axios.post("/addUserDepart",data)
