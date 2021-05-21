@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Menu } from "antd"
-import { UserOutlined,DribbbleSquareOutlined,GithubOutlined } from '@ant-design/icons';
+import { UserOutlined,DribbbleSquareOutlined,GithubOutlined,BankOutlined} from '@ant-design/icons';
 import PubSub from "pubsub-js"
 const { SubMenu } = Menu;
 
@@ -13,7 +13,23 @@ export default class Category extends Component {
 
     render() {
         return (
-            <Menu theme="dark"  mode="inline" >
+            <Menu theme="dark"  mode="inline"  >
+                {/* 首页 */}
+                <Menu.Item
+                 onClick={
+                    ()=>{
+                        PubSub.publish("tiaozhuan",{
+                            path:"/main/index",
+                            author:"index"
+                        })
+
+                    }
+
+                 }
+                key="index"
+                icon={<BankOutlined />}
+                >首页</Menu.Item>
+
                 {/* 用户结构 */}
                 <SubMenu key="ptguanli" icon={<GithubOutlined />}  title="平台管理">
                     <Menu.Item key="userMange" onClick={()=>{
