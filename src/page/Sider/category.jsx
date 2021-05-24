@@ -32,6 +32,16 @@ export default class Category extends Component {
 
                 {/* 用户结构 */}
                 <SubMenu key="ptguanli" icon={<GithubOutlined />}  title="平台管理">
+                    
+                <Menu.Item key="setting" onClick={()=>{
+                        PubSub.publish("tiaozhuan",{
+                            path:"/main/setting",
+                            author:"setting"
+                        })
+
+                    }}>系统设置</Menu.Item>
+
+
                     <Menu.Item key="userMange" onClick={()=>{
                         PubSub.publish("tiaozhuan",{
                             path:"/main/userMange",
@@ -39,7 +49,15 @@ export default class Category extends Component {
                         })
 
                     }}>用户管理</Menu.Item>
- 
+
+                <Menu.Item key="luyou" onClick={()=>{
+                        PubSub.publish("tiaozhuan",{
+                            path:"/main/luyou",
+                            author:"luyou"
+                        })
+
+                    }}>路由授权管理</Menu.Item>
+
                 </SubMenu>           
 
                 <SubMenu key="gonzuo" icon={<UserOutlined />}  title="工作功能">

@@ -2,21 +2,25 @@ import React, { Component } from 'react'
 import { Layout, Menu, message, Drawer, Card, Button } from 'antd';
 import Category from "../../page/Sider/category"
 import Bjprice from "../../page/price/bjprice/bjprice"
-import { Switch, Route} from "react-router-dom"
+import { Switch, Route, Redirect} from "react-router-dom"
 import User from "../../page/user/user"
 import PubSub from "pubsub-js"
 import "./css/main.css"
-import { toAutoLogin, getAllWords,getAllOuthor } from "../../axios/index"
+import { toAutoLogin, getAllWords,getAllOuthor,selectNoneUrl } from "../../axios/index"
 import WuliuDaohuo from "../../page/wuliu/wuliu"
 // 导入服务器URL
 import UserMange from "../../page/userMange/userMange"
 import {serverUrl} from "../../config/config"
+import {connect} from "react-redux"
+// 导入首页组件
+import {operationUser} from "../../redux/action/login"
+import Index from "../../page/index/index"
+import Logo from "../../assert/img/logo.png"
+// 导入路由设置插件
+import Router from "../../page/router/router"
 const { Header, Content, Footer, Sider } = Layout;
 
-
-
-
- export default class Main extends Component {
+ class Main extends Component {
     state = {
         collapsed: false,
         currentObj: {},
@@ -42,6 +46,8 @@ const { Header, Content, Footer, Sider } = Layout;
             if (data['error']) {
                 throw new Error("error")
             } else {
+                // 设置进Redux
+                this.props.operationUser(data)
                 //    设置用户
                 this.setState({ 
                     user: data
@@ -59,11 +65,17 @@ const { Header, Content, Footer, Sider } = Layout;
             const {path,author}=data
             const {depart,auth}=this.state.user
             // 判断是否为超级管理员
+            let {list}=await selectNoneUrl()
+            let content= list.find((item)=>item.biaoshi===author)
+             if(content){
+                 return this.props.history.replace(path)
+             }
+         
             if(depart==='ERP' || auth===1){
                return this.props.history.replace(path)
             }else {
                 
-              try{
+              try{ 
                 let {list}=  await getAllOuthor(depart,author)
                 if(JSON.stringify(list)==='{}'){
                     return message.error("抱歉，您无权限访问此模块，请联系管理员授权！")
@@ -115,7 +127,9 @@ const { Header, Content, Footer, Sider } = Layout;
                         <Layout className="site-layout">
                             <Header className="site-layout-background header" style={{ padding: 0, width: "100vw", position: "fixed", zIndex: 999, left: 0, right: 0, overflow: "hidden" }} >
                                 {/* logo */}
-                                <div className="logo">CFL ERP综合功能管理系统</div>
+                                <div className="logo">
+                                    <img src={Logo} style={{height:64 ,background:"white",marginTop:-8}} alt="" />
+                                </div>
                                 {/* 头部导航 */}
                                 <div className="topCategory" >
                                     <Menu theme="dark" mode="horizontal" defaultSelectedKeys={['1']} className="topCategory">
@@ -136,6 +150,9 @@ const { Header, Content, Footer, Sider } = Layout;
                                         <Route path="/main/bjprice" component={Bjprice}></Route>
                                         <Route path="/main/wuliudaohuo" component={WuliuDaohuo}></Route>
                                         <Route path="/main/userMange" component={UserMange}></Route>
+                                        <Route path="/main/index" component={Index}></Route>
+                                        <Router path="/main/luyou" component={Router}></Router>
+                                        <Redirect to="/main/index"></Redirect>
                                     </Switch>
 
                                 </div>
@@ -162,7 +179,7 @@ const { Header, Content, Footer, Sider } = Layout;
                                {item['file_name']}
                         </Button>
 
-                        </Card>))}
+                        </Card>))} 
 
                     </Drawer>
                 </div>
@@ -172,3 +189,8 @@ const { Header, Content, Footer, Sider } = Layout;
 }
 
 
+export default connect(state=>({
+    user:state.user
+}),{
+    operationUser
+})(Main)

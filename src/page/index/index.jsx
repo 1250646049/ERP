@@ -1,25 +1,30 @@
 import React, { Component } from "react"
-import { Card, Col, Row, Calendar, Tabs, Tag, Badge, Input, Button, message, Tooltip } from "antd"
-
+import { Card, Col, Row, Calendar, Tabs, Tag, Badge, Input, Button, message, Tooltip, Modal, Form, Select,TimePicker } from "antd"
+import {WindowsOutlined,CommentOutlined,UserOutlined} from "@ant-design/icons"
 import "./css/index.css"
 import { connect } from "react-redux"
 import Man from "../../assert/img/man_wev8.png"
 import Wman from "../../assert/img/women_wev8.png"
-import Io from "socket.io-client"
+import socket from "../../config/socketConfig"
+import {addTixing} from "../../axios/index"
 // 配置 socketIo
 const { TabPane } = Tabs
-
+const {Option}=Select
 class Index extends Component {
-    socket = Io("/")
+  
     state = {
         user: {},
 
         userList: {},
-        messageList: []
+        messageList: [],
+        year:"",
+        month:"",
+        date:"",
+        tixingShow:false,start:""
     }
 
     componentDidMount() {
-        this.flag=true
+        this.flag = true
         this.initUser()
 
     }
@@ -27,7 +32,7 @@ class Index extends Component {
     initUser = () => {
         // 设置用户
         setTimeout(() => {
-            this.flag&&this.setState({
+            this.flag && this.setState({
 
                 user: this.props.user
             }, () => {
@@ -37,21 +42,21 @@ class Index extends Component {
         }, 500)
 
 
-    } 
+    }
     // 初始化 socketIo
     initSocket = () => {
-        this.socket.emit("login", this.state.user)
-        this.socket.on("userList", data => {
+        socket.emit("login", this.state.user)
+        socket.on("userList", data => {
 
-            this.flag&&this.setState({
+            this.flag && this.setState({
                 userList: data
 
             })
         })
 
         // 监听公告消息队列
-        this.socket.on("message", (list) => {
-            this.flag&&this.setState({
+        socket.on("message", (list) => {
+            this.flag && this.setState({
                 messageList: list
             })
 
@@ -62,14 +67,61 @@ class Index extends Component {
     onPublish = () => {
         const { value } = this.MessageInput.state
         if (!value) return message.error("请先补充要发送的公告内容！")
-        this.socket.emit("publish", value)
+        socket.emit("publish", value)
+        this.MessageInput.state.value = ""
     }
+    // 添加提醒
+    onAddTixin=(v)=>{
+        
+        this.setState({
+            year:v.year(),
+            month:v.month()+1,
+            date:v.date(),
+            tixingShow:true
+        })
 
-    componentWillUnmount(){
-        this.flag=false
+    }
+    componentWillUnmount() {
+        this.flag = false
+    }
+    // 添加提醒内容
+    addTixing=async()=>{
+     
+        try{
+            let result=  await this.tixingForm.validateFields()
+            if(!result['status']){
+                result['status']="warning"
+            }
+            result['year']=this.state.year
+            result['month']=this.state.month
+            result['date']=this.state.date
+            result['start']=this.state.start
+            result['uid']=this.state.user['username']
+            // console.log(result);
+           let data=await addTixing(result)
+           console.log(data);
+           if(data['status']){
+               message.success("添加日程提醒成功！")
+               this.setState({
+                tixingShow:false,
+               },()=>{
+                this.tixingForm.setFieldsValue({
+                    content:"",
+                    status:""
+                   
+                })
+
+               })
+           }
+        }catch{
+            message.error("抱歉，请先告知需要完成的内容！")
+        }
+
+
+
     }
     render() {
-        const { user, userList, messageList } = this.state
+        const { user, userList, messageList,tixingShow } = this.state
 
         return (
             <div className="index">
@@ -107,7 +159,7 @@ class Index extends Component {
                                     <Tabs
 
                                     >
-                                        <TabPane tab={<Badge count={messageList.length} size="small"><span> 系统通知</span></Badge>} key="1"
+                                        <TabPane tab={<Badge count={messageList.length} size="small"><span><WindowsOutlined /> 系统通知</span></Badge>} key="1"
                                             style={{ maxHeight: 428, overflowY: "scroll" }}
 
                                         >
@@ -121,14 +173,14 @@ class Index extends Component {
                                                     )
                                                 })}
                                             </ul>
-                                            <div className="public" style={{display:user['auth']?'block':'none'}}>
+                                            <div className="public" style={{ display: user['auth'] ? 'block' : 'none' }}>
                                                 <Input placeholder="请输入要发表的系统公告:" style={{ width: '85%' }} ref={input => this.MessageInput = input}></Input> <Button onClick={this.onPublish} type="primary">发布</Button>
                                             </div>
                                         </TabPane>
-                                        <TabPane tab="@ 与我相关" key="2">@ 与我相关</TabPane>
+                                        <TabPane tab={<span><CommentOutlined /> @与我相关</span>} key="2"></TabPane>
                                         <TabPane tab={
                                             <Badge size="small" count={userList ? Object.values(userList).length : 0} >
-                                                <span>在线人员</span>
+                                                <span><UserOutlined />在线人员</span>
                                             </Badge>
 
                                         } key="3">
@@ -138,7 +190,8 @@ class Index extends Component {
                                                 return (
                                                     <div key={index} style={{ display: "flex", marginBottom: 20 }}>
                                                         <Badge count={1} dot={true} color="green">
-                                                            <img src={item['sex']?Man:Wman} alt="" style={{ width: 50, height: 50, borderRadius: '100%' }} />
+
+                                                            <img src={userList[item]['sex'] && userList[item]['sex'] ? Man : Wman} alt="" style={{ width: 50, height: 50, borderRadius: '100%' }} />
                                                         </Badge>
                                                         <div className="detail" style={{ margin: "-12px 15px" }}>
                                                             <h3>{userList[item]['name']}</h3>
@@ -159,12 +212,82 @@ class Index extends Component {
                     </Col>
                     {/* 日历 待办提醒 */}
                     <Col span={15} offset={1}>
-                        <Calendar onSelect={() => {
-                            console.log(666);
+                        <Calendar dateCellRender={(v)=>{
+                         
+                            if(v.date()===25){
+                                return (
+                                    <Badge status="warning" text="99999"></Badge>
+                                )
+                            }
+                        }} onSelect={(v) => {
+                            this.onAddTixin(v)
                         }}></Calendar>
                     </Col>
                 </Row>
 
+            <div className="bottom">
+                <Modal
+                visible={tixingShow}
+                title="添加提醒日程"
+                okText="添加提醒"
+                onOk={this.addTixing}
+                onCancel={()=>{
+                    this.setState({
+                        tixingShow:false
+                    })
+                }}
+                cancelText="取消"
+                >
+                    <Form
+                    name="tixingForm"
+                    ref={node=>this.tixingForm=node}
+                    >
+                        <Form.Item
+                        label="日程内容"
+                        rules={[
+                            {required:true,message:"请完善提醒内容",trigger:"blur"}
+                        ]}
+                        name="content"
+                        >
+                            <Input></Input>
+                        </Form.Item>
+
+                        <Form.Item
+                        label="日程状态"
+                        name="status"
+                        >
+                            <Select
+                            defaultValue="warning"
+                           
+                            >
+                                <Option value="warning">待办</Option>
+                                <Option value="success">完成</Option>
+                                <Option value="error">失败</Option>
+
+                            </Select>
+                        </Form.Item>
+
+                        <Form.Item
+                        label="开始时间"
+                        name="start"
+                        >
+                            <TimePicker
+                            onChange={(v)=>{
+
+                                if(v){
+                                    this.setState({
+                                        start:`${v.hour()}:${v.minute()<10?'0'+v.minute():v.minute()}:${v.second()<10?'0'+v.second():v.second()}`
+                                    })
+                                }
+                            }}
+                            ></TimePicker>
+                        </Form.Item>
+
+                    </Form>
+
+
+                </Modal>
+            </div>
             </div>
         )
     }

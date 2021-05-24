@@ -1,6 +1,9 @@
 .ant-card-body {
   padding: 20px;
 }
+.ant-card-body .ant-tabs-tab .anticon {
+  margin-right: 0;
+}
 .body {
   display: flex;
   border-bottom: 3px solid #CCCCCC;

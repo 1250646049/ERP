@@ -1,0 +1,6 @@
+.router .top #updateForm {
+  display: flex;
+}
+.router .top #updateForm > div {
+  margin-left: 10px;
+}

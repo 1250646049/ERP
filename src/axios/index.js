@@ -67,3 +67,23 @@ export const deleteOauthor=(depart)=>axios.get("/deleteOauthor",{params:{depart}
 
 // 添加用户
 export const addUserDepart=(data)=>axios.post("/addUserDepart",data)
+
+// 查询不需要授权的地址
+
+export const selectNoneUrl=()=>axios.get("/selectNoneOauth")
+
+
+// 查询所有授权菜单
+
+export const selectAllOath=()=>axios.get("/selectAllOath")
+
+// 更新菜单授权
+
+export const updateOath=(id,contro)=>axios.get("/alterOath",{params:{id,contro}})
+
+// 添加一条路由授权
+
+export const addOnePath=(data)=>axios.post("/addOnePath",data)
+
+// 添加一条提醒内容
+export const addTixing=(data)=>axios.post("/addTixing",data)
