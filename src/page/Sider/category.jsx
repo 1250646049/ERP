@@ -60,14 +60,14 @@ export default class Category extends Component {
 
                 </SubMenu>           
 
-                <SubMenu key="gonzuo" icon={<UserOutlined />}  title="工作功能">
+                <SubMenu key="gonzuo" icon={<UserOutlined />}  title="比价节控">
                     <Menu.Item key="bjprice" onClick={()=>{
                         PubSub.publish("tiaozhuan",{
                             path:"/main/bjprice",
                             author:'bjprice'
                         })
 
-                    }}>比价节控功能</Menu.Item>
+                    }}>比价节控检索</Menu.Item>
  
                 </SubMenu>
 

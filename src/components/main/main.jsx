@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
-import { Layout, Menu, message, Drawer, Card, Button } from 'antd';
+import { Layout, Menu, message, Drawer, Card, Button, Modal } from 'antd';
 import Category from "../../page/Sider/category"
 import Bjprice from "../../page/price/bjprice/bjprice"
 import { Switch, Route, Redirect} from "react-router-dom"
 import User from "../../page/user/user"
 import PubSub from "pubsub-js"
 import "./css/main.css"
-import { toAutoLogin, getAllWords,getAllOuthor,selectNoneUrl } from "../../axios/index"
+import { toAutoLogin, getAllWords,getAllOuthor,selectNoneUrl,selectBobao } from "../../axios/index"
 import WuliuDaohuo from "../../page/wuliu/wuliu"
 // 导入服务器URL
 import UserMange from "../../page/userMange/userMange"
@@ -18,6 +18,8 @@ import Index from "../../page/index/index"
 import Logo from "../../assert/img/logo.png"
 // 导入路由设置插件
 import Router from "../../page/router/router"
+// 导入今日播报
+import Bobao from "../../page/bobao/bobao"
 const { Header, Content, Footer, Sider } = Layout;
 
  class Main extends Component {
@@ -26,7 +28,8 @@ const { Header, Content, Footer, Sider } = Layout;
         currentObj: {},
         user: {},
         drawerShow: false,
-        words: []
+        words: [],
+        bobaoShow:false
     };
 
     componentDidMount() {
@@ -51,8 +54,15 @@ const { Header, Content, Footer, Sider } = Layout;
                 //    设置用户
                 this.setState({ 
                     user: data
-                },()=>{
-                    console.log(this.state.user)
+                },async()=>{
+                    // console.log(this.state.user)
+                  let d= await selectBobao(this.state.user['username'])
+                  if(JSON.stringify(d['list'])==="{}"){
+                   this.setState({
+                        bobaoShow:true
+                   })
+
+                  }
                 })
             }
         } catch {
@@ -112,9 +122,18 @@ const { Header, Content, Footer, Sider } = Layout;
     downWords=(url)=>{
         window.location.href=serverUrl+'/'+url
     }
+    // 已阅读播报
+    onReadBobao=async()=>{
+        let d=  await this.BobaoRef.Ok2Bobao(this.state.user['username'])
+        if(d['status']){
+            this.setState({
+                bobaoShow:false
+            })
+        }
+    }
     render() {
 
-        const { collapsed, user, drawerShow, words } = this.state;
+        const { collapsed, user, drawerShow, words,bobaoShow } = this.state;
         return (
             <div className="main">
                 {/* 总布局 */}
@@ -182,6 +201,20 @@ const { Header, Content, Footer, Sider } = Layout;
                         </Card>))} 
 
                     </Drawer>
+                </div>
+
+                {/* 咨询提醒 */}
+                <div className="zixun">
+                    <Modal
+                    title="今日简报"
+                    visible={bobaoShow}
+                    okText="已阅"
+                    cancelText="取消"
+                    onOk={this.onReadBobao}
+                    onCancel={this.onReadBobao}
+                    >
+                       <Bobao ref={node=>this.BobaoRef=node} user={user}></Bobao>
+                    </Modal>
                 </div>
             </div>
         )

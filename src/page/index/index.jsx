@@ -6,7 +6,7 @@ import { connect } from "react-redux"
 import Man from "../../assert/img/man_wev8.png"
 import Wman from "../../assert/img/women_wev8.png"
 import socket from "../../config/socketConfig"
-import {addTixing} from "../../axios/index"
+import {addTixing,selectTixing} from "../../axios/index"
 // 配置 socketIo
 const { TabPane } = Tabs
 const {Option}=Select
@@ -20,7 +20,9 @@ class Index extends Component {
         year:"",
         month:"",
         date:"",
-        tixingShow:false,start:""
+        tixingShow:false,
+        start:"",
+        tixingList:[]
     }
 
     componentDidMount() {
@@ -33,12 +35,15 @@ class Index extends Component {
         // 设置用户
         setTimeout(() => {
             this.flag && this.setState({
-
                 user: this.props.user
-            }, () => {
+            }, async() => {
                 this.initSocket()
+                // 查询提醒并且设置
+              let data=  await selectTixing(this.state.user['username'])
+              this.setState({
+                  tixingList:data['list']
+              })
             })
-
         }, 500)
 
 
@@ -47,7 +52,6 @@ class Index extends Component {
     initSocket = () => {
         socket.emit("login", this.state.user)
         socket.on("userList", data => {
-
             this.flag && this.setState({
                 userList: data
 
@@ -102,6 +106,7 @@ class Index extends Component {
            console.log(data);
            if(data['status']){
                message.success("添加日程提醒成功！")
+               this.initUser()
                this.setState({
                 tixingShow:false,
                },()=>{
@@ -109,7 +114,7 @@ class Index extends Component {
                     content:"",
                     status:""
                    
-                })
+                }) 
 
                })
            }
@@ -121,7 +126,9 @@ class Index extends Component {
 
     }
     render() {
-        const { user, userList, messageList,tixingShow } = this.state
+        const { user, userList, messageList,tixingShow,tixingList } = this.state
+        // 设置日期内容
+
 
         return (
             <div className="index">
@@ -213,12 +220,30 @@ class Index extends Component {
                     {/* 日历 待办提醒 */}
                     <Col span={15} offset={1}>
                         <Calendar dateCellRender={(v)=>{
-                         
-                            if(v.date()===25){
-                                return (
-                                    <Badge status="warning" text="99999"></Badge>
-                                )
+                           let date=v.date()
+                           let month=v.month()
+                            if(tixingList.length){
+                                // 判断是否含有日期
+                               let d= tixingList.findIndex((item=>item['date']===date))
+                               let dm=tixingList.filter((item)=>item['date']===date)
+                               if(d>=0){
+                             
+                                //    判断月份是否对应
+                                    if(tixingList[d].month===(month+1)){
+                                       
+                                    return <span>
+                                       {dm.map(item=>{
+                                           return  <Badge key={item['id']} status={item['status']} text={item['start']+"\t"+item['content']}></Badge>
+                                       })}
+                                    </span>
+                                  
+                                 }
+                                  
+                               }
+
                             }
+
+
                         }} onSelect={(v) => {
                             this.onAddTixin(v)
                         }}></Calendar>

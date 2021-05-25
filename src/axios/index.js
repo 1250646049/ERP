@@ -87,3 +87,25 @@ export const addOnePath=(data)=>axios.post("/addOnePath",data)
 
 // 添加一条提醒内容
 export const addTixing=(data)=>axios.post("/addTixing",data)
+// 根据用户username查询数据
+
+
+export const selectTixing=(username)=>axios.get("/selectTixing",{params:{username}})
+
+
+// 获取今日播报内容
+
+export const getBobao=()=>axios.get("/getZixun")
+
+
+//查询是否要显示每日播报
+
+// 
+// 
+// 
+export const selectBobao=(username)=>axios.get("/selectBobao",{params:{username}})
+
+
+// 添加阅读播报信息
+
+export const addBobao=(username)=>axios.post("/addBobao",{username})
