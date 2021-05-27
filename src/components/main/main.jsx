@@ -20,6 +20,9 @@ import Logo from "../../assert/img/logo.png"
 import Router from "../../page/router/router"
 // 导入今日播报
 import Bobao from "../../page/bobao/bobao"
+
+// 导入往来表
+import Wanglai from "../../page/wanglai/wanglai"
 const { Header, Content, Footer, Sider } = Layout;
 
  class Main extends Component {
@@ -34,6 +37,7 @@ const { Header, Content, Footer, Sider } = Layout;
 
     componentDidMount() {
         this.initData()
+        this.urlAlter()
     }
     // 跳转内容区
     initData = async () => {
@@ -55,6 +59,9 @@ const { Header, Content, Footer, Sider } = Layout;
                 this.setState({ 
                     user: data
                 },async()=>{
+                    // 监听浏览器地址变化
+               
+                   
                     // console.log(this.state.user)
                   let d= await selectBobao(this.state.user['username'])
                   if(JSON.stringify(d['list'])==="{}"){
@@ -74,20 +81,24 @@ const { Header, Content, Footer, Sider } = Layout;
         PubSub.subscribe("tiaozhuan", async(_, data) => {
             const {path,author}=data
             const {depart,auth}=this.state.user
+           
             // 判断是否为超级管理员
             let {list}=await selectNoneUrl()
             let content= list.find((item)=>item.biaoshi===author)
+            
              if(content){
                  return this.props.history.replace(path)
              }
          
             if(depart==='ERP' || auth===1){
+                
                return this.props.history.replace(path)
             }else {
                 
               try{ 
                 let {list}=  await getAllOuthor(depart,author)
                 if(JSON.stringify(list)==='{}'){
+                    this.props.history.replace("/main/index")
                     return message.error("抱歉，您无权限访问此模块，请联系管理员授权！")
                 }
                     this.props.history.replace(path)
@@ -106,6 +117,26 @@ const { Header, Content, Footer, Sider } = Layout;
                 words: result['list']
             })
         })
+
+    }
+
+    // 监听地址栏改变事件
+    urlAlter=()=>{
+        window.onload=(e)=>{
+            // 获取URL地址
+            const {pathname}=this.props.location
+            // 获取路径标识
+            const biaoshi=pathname.split("/")[2]
+            // console.log(biaoshi,pathname);
+            window.setTimeout(()=>{
+                PubSub.publish("tiaozhuan",{
+                    path:pathname,
+                    author:biaoshi
+                })
+            },200)
+        
+        }
+
 
     }
 // shouldComponentUpdate
@@ -166,11 +197,13 @@ const { Header, Content, Footer, Sider } = Layout;
                                     {/* center */}
 
                                     <Switch>
+
                                         <Route path="/main/bjprice" component={Bjprice}></Route>
                                         <Route path="/main/wuliudaohuo" component={WuliuDaohuo}></Route>
                                         <Route path="/main/userMange" component={UserMange}></Route>
                                         <Route path="/main/index" component={Index}></Route>
-                                        <Router path="/main/luyou" component={Router}></Router>
+                                        <Route path="/main/luyou" component={Router}></Route>
+                                        <Route path="/main/wanglai" component={Wanglai}></Route>
                                         <Redirect to="/main/index"></Redirect>
                                     </Switch>
 

@@ -81,6 +81,18 @@ export default class Category extends Component {
                     }}>  物流到货发送</Menu.Item>
 
                 </SubMenu>
+
+                {/* 乐迈往来表 */}
+                <SubMenu key="wanglai" icon={<DribbbleSquareOutlined />}  title="乐迈往来表">
+                    <Menu.Item key="wanglai" onClick={()=>{
+                        PubSub.publish("tiaozhuan",{
+                            path:"/main/wanglai",
+                            author:'wanglai'
+                        })
+                        
+                    }}>  往来表</Menu.Item>
+
+                </SubMenu>
             </Menu>
 
         )
