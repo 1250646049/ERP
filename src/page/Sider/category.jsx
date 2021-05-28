@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Menu } from "antd"
-import { UserOutlined,DribbbleSquareOutlined,GithubOutlined,BankOutlined} from '@ant-design/icons';
+import { UserOutlined,DribbbleSquareOutlined,GithubOutlined,BankOutlined,AntCloudOutlined} from '@ant-design/icons';
 import PubSub from "pubsub-js"
 const { SubMenu } = Menu;
 
@@ -83,7 +83,7 @@ export default class Category extends Component {
                 </SubMenu>
 
                 {/* 乐迈往来表 */}
-                <SubMenu key="wanglai" icon={<DribbbleSquareOutlined />}  title="乐迈往来表">
+                <SubMenu key="wanglai" icon={<AntCloudOutlined />}  title="乐迈往来表">
                     <Menu.Item key="wanglai" onClick={()=>{
                         PubSub.publish("tiaozhuan",{
                             path:"/main/wanglai",

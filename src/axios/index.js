@@ -114,3 +114,7 @@ export const addBobao=(username)=>axios.post("/addBobao",{username})
 // 获取乐迈往来信息
 
 export const getWanglai=(type,time)=>axios.get("/getWanglai",{params:{type,time}})
+
+// 导出乐迈往来表信息
+
+export const exportWanglai=(type,time)=>axios.get("/getWanglai",{params:{type,time}})
