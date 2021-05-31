@@ -23,6 +23,9 @@ import Bobao from "../../page/bobao/bobao"
 
 // 导入往来表
 import Wanglai from "../../page/wanglai/wanglai"
+
+// 导入应收账款
+import Yinshou from "../../page/yinshou/yinshou"
 const { Header, Content, Footer, Sider } = Layout;
 
  class Main extends Component {
@@ -204,6 +207,7 @@ const { Header, Content, Footer, Sider } = Layout;
                                         <Route path="/main/index" component={Index}></Route>
                                         <Route path="/main/luyou" component={Router}></Route>
                                         <Route path="/main/wanglai" component={Wanglai}></Route>
+                                        <Route path="/main/yinshou" component={Yinshou}></Route>
                                         <Redirect to="/main/index"></Redirect>
                                     </Switch>
 
