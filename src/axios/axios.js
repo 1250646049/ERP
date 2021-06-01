@@ -1,7 +1,9 @@
 import axios from "axios"
 import qs from "querystring"
 
-const instance= axios.create({})
+const instance= axios.create({
+
+})
 
 
 // 请求拦截器
@@ -13,8 +15,8 @@ instance.interceptors.request.use(config=>{
 
 // 响应拦截器
 
-instance.interceptors.response.use(resp=>{
-
+instance.interceptors.response.use(resp=>{ 
+    
     return resp.data;
 
 },error=>{

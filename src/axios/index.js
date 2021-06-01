@@ -118,3 +118,11 @@ export const getWanglai=(type,time)=>axios.get("/getWanglai",{params:{type,time}
 // 导出乐迈往来表信息
 
 export const exportWanglai=(type,time)=>axios.get("/getWanglai",{params:{type,time}})
+
+// 查询应收货款到货
+
+export const selectYsk=(number)=>axios.get("/selectYsk",{params:{number}})
+
+// 更新收货款
+
+export const alterYinshou=(data)=>axios.post("/alterYinshou",data)
