@@ -126,3 +126,12 @@ export const selectYsk=(number)=>axios.get("/selectYsk",{params:{number}})
 // 更新收货款
 
 export const alterYinshou=(data)=>axios.post("/alterYinshou",data)
+
+
+// 添加收款记录
+
+export const addYinshou=(data)=>axios.post("/addYinshou",data)
+
+// 查询一些记录
+
+export const selectAllYinshou=(AutoId)=>axios.get("/selectShoukuan2AutoId",{params:{AutoId}})
