@@ -1,27 +1,37 @@
 import React, { Component } from "react"
-import { Table, Button, Spin, Drawer, Form, Input, Switch, DatePicker, Divider, message, Tag, Tooltip } from "antd"
-//  导入请求
-import "./css/yinshou.css"
-import { selectYsk,  addYinshou } from "../../axios/index"
+import { Table, Button, Spin, Drawer, Form, Input, Switch, DatePicker, Divider, message, Tag, Tooltip, Badge, Select } from "antd"
 
-export default class Yinshou extends Component {
+import {connect} from "react-redux"
+
+//  导入请求
+
+import "./css/yinshou.css"
+import { selectYsk, addYinshou,alterYinshou} from "../../axios/index"
+
+const {Option}=Select
+
+ class Yinshou extends Component {
     state = {
         data: [],
         total: 0,
         flag: true,
         count: 0,
         currentId: "",
-        jieanType: true,
+ 
         shoukuanTime: "",
-        status: true,
+        status: false,
         fajianTime: "",
         visable: false,
         page: 1,
         type: true,
+        mysqlId:"",
+        mysql_type:"预收款"
+
 
     }
     initData = async (count = 10) => {
         if (this.state.count >= count) return
+         
         this.setState({
             flag: false,
         })
@@ -32,6 +42,9 @@ export default class Yinshou extends Component {
             total: data['total'],
             flag: true,
             count
+        },()=>{
+            console.log(this.state.data)
+
         })
     }
     componentDidMount() {
@@ -46,9 +59,12 @@ export default class Yinshou extends Component {
     // 数据回显
     huixianForm = (mysql) => {
         if (!mysql) return;
+      
         this.setState({
             status: Boolean(mysql['status']),
-            jieanType: Boolean(mysql['jiean'])
+          
+            shoukuanTime: mysql['riqi'],
+            fajianTime: mysql['jiedian']
         }, () => {
             this.refForm.setFieldsValue({
                 beizhu: mysql['beizhu'],
@@ -70,67 +86,80 @@ export default class Yinshou extends Component {
 
         try {
             let result = await this.refForm.validateFields()
-            result['jiean'] = Number(this.state.jieanType)
+           
             result['riqi'] = this.state.shoukuanTime
             result['jiedian'] = this.state.fajianTime
             result['status'] = Number(this.state.status)
             result['AutoId'] = this.state.currentId
-            let data = await addYinshou(result)
-            if (data.status) {
-                this.setState({
-                    visable: false,
-                    count: 0
-                }, () => {
+            result['type']=this.state.mysql_type
+            result['name']=this.props.user['name']
+            result['username']=this.props.user['username']
+            if (this.state.type) {
+                let data = await addYinshou(result)
+                if (data.status) {
+                    this.setState({
+                        visable: false,
+                        count: 0,
+                        shoukuanTime: "",
+                        fajianTime: "",
+                        status: true,
+                   
+                    }, () => {
 
-                    message.success(data['message'])
+                        message.success(data['message'])
 
-                    this.initData(this.state.page * 10)
-                })
+                        this.initData(this.state.page * 10)
+                    })
+                } else {
+                    throw new Error("抱歉，请将内容填写完整！")
+                }
             } else {
-                throw new Error("抱歉，错误！")
-            }
-        } catch {
-            message.error("抱歉，请将必填项填写完整！")
-        }
+                result['id']=this.state.mysqlId;
+                let data= await alterYinshou(result)
+                if(data['status']){
+                    message.success("恭喜你，修改记录成功！")
+                    
+                    this.setState({
+                        visable:false,
+                        count:0,
+                    },()=>{
+                        this.initData(this.state.page*10)
+                    })
+                }
 
+
+
+            }
+        }
+        catch (err) {
+            message.error(err)
+
+        }
+ 
     }
+
+
+
+
     render() {
         const expendColumns = [
             {
-                title: "业务员邮箱",
-           
-                dataIndex: "email",
-                key: "email"
-            }, {
                 title: "付款方式",
-  
                 dataIndex: "type",
                 key: "type"
             }, {
-                title: "是否结案",
-                render: (data) => {
-
-                    return (data['jiean'] !== undefined) && (data['jiean'] ? <Tag color="red"> 结案</Tag> : <Tag color="green"> 未结案</Tag>)
-                },
-                key: "jiean"
-            }, {
-                title: "收款记录",
-           
-                dataIndex: "jilu",
-                key: "jilu"
-            }, {
                 title: "收款日期",
-             
+
                 dataIndex: "riqi",
                 key: "riqi"
             }, {
                 title: "收款金额",
-              
+
                 dataIndex: "price",
                 key: "price"
             }, {
                 title: "备注",
-              
+
                 dataIndex: "beizhu",
                 key: "beizhu"
             }, {
@@ -141,44 +170,68 @@ export default class Yinshou extends Component {
                 key: "status"
             }, {
                 title: "预警收件人",
-                // render: ({ mysql }) => <span>{mysql['shoujianren']}</span>,
+
                 dataIndex: "shoujianren",
                 key: "shoujianren"
             }, {
-                title: "发件时间截点及频率",
-                // render: ({ mysql }) => <span>{mysql['jiedian']}</span>,
+                title: "到期日期",
+
                 dataIndex: "jiedian",
                 key: "jiedian"
             }, {
                 title: "信用额度",
-                // render: ({ mysql }) => <span>{mysql['edu']}</span>,
+
                 dataIndex: "edu",
                 key: "额度"
             }, {
                 title: "区域",
-                // render: ({ mysql }) => <span>{mysql['quyu']}</span>,.
+
                 dataIndex: "quyu",
                 key: "quyu"
             },
             {
-                title:"更新",
-                key:"number",
-                render:(d)=>{
-                    return <span>第{d['number']}次修改</span>
+                title: "更新",
+                key: "number",
+                render: (d) => {
+                    return <span>第{d['number']}添加</span>
                 }
             },
             {
-                title:"录入时间",
-                key:"uptime",
-                dataIndex:"uptime"
+                title: "录入时间",
+                key: "uptime",
+                dataIndex: "uptime"
+            },
+            {
+                title: "操作",
+                key: "caozuo",
+                render: (d) => {
+                    const { AutoId,id } = d;
+                    return <Button
+                        type="dashed"
+                        onClick={() => {
+                            this.setState({
+                              
+                                visable: true,
+                                currentId: AutoId,
+                                type: false,
+                                mysqlId:id
+                            }, () => {
+                                this.huixianForm(d);
+                            })
+
+                        }}
+                    >
+                        修改
+                    </Button>
+                }
             }
         ]
-        const { data, total, flag, jieanType, status, visable, currentId, type} = this.state
+        const { data, total, flag,  status, visable, currentId, type,mysql_type } = this.state
         const columns = [
             {
                 title: "订单号",
-                dataIndex: "cSOCode",
-                key: "cSOCode",
+                dataIndex: "cbdlcode",
+                key: "cbdlcode",
                 fixed: "left"
             }, {
                 title: "业务员",
@@ -190,7 +243,7 @@ export default class Yinshou extends Component {
                 key: "cCusAbbName"
             }, {
                 title: "制单日期",
-
+                fixed: "right", 
                 key: "dDate",
                 render: ({ dDate }) => {
                     let d = new Date(dDate)
@@ -200,25 +253,42 @@ export default class Yinshou extends Component {
             }, {
                 title: "订单数量",
                 dataIndex: "iQuantity",
-                key: "iQuantity"
+                key: "iQuantity",
+                fixed: "right",
             }, {
                 title: "订单金额(含税)",
                 dataIndex: "iSum",
-                key: "iSum"
+                key: "iSum",
+                fixed: "right"
             }, {
+                title: "是否结案",
+                render: ({mysql}) => {
+
+                    return (mysql.length&&(Number(mysql[mysql.length-1]['jiean'])===1 ? <Tag color="red"> 结案</Tag> : <Tag color="green"> 未结案</Tag>))|| <Tag color="green"> 未结案</Tag>
+                },
+                key: "jiean"
+            } ,{
                 title: "操作",
                 render: (d) => {
+
                     return <div>
-                        <Button type="primary" onClick={() => {
-                            this.setState({
-                                currentId: d['AutoID'],
-                                visable: true
-                            }, () => {
-                                this.resetForm()
+                        <Badge
+                            count={d.mysql.length}
+                        >
+                            <Button type="primary" onClick={() => {
+                                this.setState({
+                                    currentId: d['AutoID'],
+                                    type: true,
+                                    visable: true,
+                                    fajianTime: "",
+                                    shoukuanTime: ""
+                                }, () => {
+                                    this.resetForm()
 
-                            })
+                                })
 
-                        }} >添加</Button>
+                            }} >添加</Button>
+                        </Badge>
                     </div>
                 },
                 key: "caozuo",
@@ -234,38 +304,37 @@ export default class Yinshou extends Component {
                     columns={columns}
                     bordered={true}
                     dataSource={data}
-                    
+
                     expandable={{
                         expandedRowRender: (data) => {
-                    
+
                             return <div>
-        
+
                                 <Table
                                     columns={expendColumns}
-                                    dataSource={ data.mysql}
+                                    dataSource={data.mysql}
                                     bordered={true}
 
                                 ></Table>
                             </div>
 
                         }
-              
+
                     }}
                     pagination={{ total, showSizeChanger: false }}
                     onChange={(v) => {
                         this.setState({
                             page: v.current,
                         }, () => {
-                            this.initData(v.current * 10)
+                            this.initData(v.current * 10) 
                         })
                     }}
 
-                    scroll={{ x: 2000 }}
                 ></Table>
 
                 <div className="utils">
                     <Drawer
-                        title={`修改[${currentId}]的内容`}
+                        title={type ? `添加[${currentId}]的内容` : `修改[${currentId}]的内容`}
                         visible={visable}
                         width={400}
                         onClose={() => {
@@ -279,57 +348,37 @@ export default class Yinshou extends Component {
                             labelCol={{ span: 6 }}
 
                         >
-                            {/* 业务员邮箱 */}
-                            <Form.Item
-                                label="业务员邮箱"
-                                name="email"
-                            >
-                                <Input></Input>
-                            </Form.Item>
+
 
                             {/* 付款方式 */}
                             <Form.Item
                                 label="付款方式"
                                 name="type"
                             >
-                                <Input></Input>
+                               <Select defaultValue={mysql_type} onChange={(d)=>{
+                                   this.setState({
+                                        mysql_type:d
+                                   })
+                               }} >
+                                   <Option  value="预收款">预收款</Option>
+                                   <Option  value="中期款">中期款</Option>
+                                   <Option  value="尾款">尾款</Option>
+                                   <Option  value="质保金">质保金</Option>
+                               </Select>
                             </Form.Item>
 
-                            {/* 是否结案 */}
-                            <Form.Item
-                                label="是否结案"
-                                name="jiean"
-                            >
-                                <Tooltip
-                                    title="开：结案 \ 关：未结案"
-                                >
-                                    <Switch
-                                        checked={jieanType}
-                                        onChange={(d) => {
-                                            this.setState({
-                                                jieanType: d
-                                            })
-                                        }}
-                                    >
-
-                                    </Switch>
-                                </Tooltip>
-                            </Form.Item>
+                          
 
                             {/* 收款记录 */}
-                            <Form.Item
-                                label="收款记录"
-                                name="jilu"
-                            >
-                                <Input></Input>
-                            </Form.Item>
+                          
 
                             {/* 收款日期 */}
                             <Form.Item
-                                label="收款日期"
+                                label={'收款日期'}
                                 name="riqi"
                             >
                                 <DatePicker
+                                    
                                     onChange={(d) => {
                                         if (!d) return;
                                         let month = (d.month() + 1) < 10 ? 0 + "" + (d.month() + 1) : (d.month() + 1)
@@ -340,6 +389,7 @@ export default class Yinshou extends Component {
                                         })
                                     }}
                                 ></DatePicker>
+                                <label style={{ color: "red", marginLeft: 4, display: type ? 'none' : 'block' }}>无需修改则不录入</label>
                             </Form.Item>
 
 
@@ -356,17 +406,17 @@ export default class Yinshou extends Component {
                                 name="status"
                             >
                                 <Tooltip title="开:正常 \ 关：关闭">
-                                <Switch
-                                    checked={status}
-                                    onChange={
-                                        (d) => {
-                                            this.setState({
-                                                status: d
-                                            })
+                                    <Switch
+                                        checked={status}
+                                        onChange={
+                                            (d) => {
+                                                this.setState({
+                                                    status: d
+                                                })
+                                            }
                                         }
-                                    }
-                                >
-                                </Switch>
+                                    >
+                                    </Switch>
                                 </Tooltip>
 
                             </Form.Item>
@@ -388,7 +438,7 @@ export default class Yinshou extends Component {
 
                             {/* 发件时间*/}
                             <Form.Item
-                                label="发件时间"
+                                label="到期日期"
                                 name="jiedian"
 
                             >
@@ -403,7 +453,11 @@ export default class Yinshou extends Component {
                                         fajianTime: d.year() + '-' + month + "-" + date
                                     })
 
-                                }}></DatePicker>
+                                }}>
+
+                                </DatePicker>
+                                <label style={{ color: "red", marginLeft: 4, display: type ? 'none' : 'block' }}>无需修改则不录入</label>
+
                             </Form.Item>
                             {/* 信用额度*/}
                             <Form.Item
@@ -434,3 +488,8 @@ export default class Yinshou extends Component {
 
 }
 
+export default connect(state=>({
+ user:state.user
+
+
+}))(Yinshou)
