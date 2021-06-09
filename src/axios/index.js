@@ -121,7 +121,7 @@ export const exportWanglai=(type,time)=>axios.get("/getWanglai",{params:{type,ti
 
 // 查询应收货款到货
 
-export const selectYsk=(number)=>axios.get("/selectYsk",{params:{number}})
+export const selectYsk=(number,type,search)=>axios.get("/selectYsk",{params:{number,type,search}})
 
 // 更新收货款
 
@@ -139,3 +139,19 @@ export const selectAllYinshou=(AutoId)=>axios.get("/selectShoukuan2AutoId",{para
 // 修改一条记录
 
 export const alterYinshou=(data)=>axios.post("/alterYinshou",data) 
+
+// 搜索收款到期
+
+export const searchYsk=(type,search)=>axios.get("/searchYsk",{params:{type,search}})
+
+// 删除应收活到期
+
+export const deleteOrder=(id)=>axios.get("/deleteOrder",{params:{id}})
+
+// 修改结案
+
+export const alterJiean=(jiean,id)=>axios.get(`/alterJiean`,{params:{jiean,id}})
+
+// 根据AutoId查询
+
+export const select2autoId=(AutoId)=>axios.get("/select2autoId",{params:{AutoId}})
