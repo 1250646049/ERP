@@ -155,3 +155,11 @@ export const alterJiean=(jiean,id)=>axios.get(`/alterJiean`,{params:{jiean,id}})
 // 根据AutoId查询
 
 export const select2autoId=(AutoId)=>axios.get("/select2autoId",{params:{AutoId}})
+
+
+// 003账套查询因收款数据
+
+export const selectYsk003=(number,type,search)=>axios.get("/selectYsk003",{params:{number,type,search}})
+
+
+export const searchYsk003=(type,search)=>axios.get("/searchYsk003",{params:{type,search}})

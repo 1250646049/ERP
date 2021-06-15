@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Layout, Menu, message, Drawer, Card, Button, Modal } from 'antd';
+import { Layout, Menu, message, Drawer, Card, Button } from 'antd';
 import Category from "../../page/Sider/category"
 import Bjprice from "../../page/price/bjprice/bjprice"
 import { Switch, Route, Redirect} from "react-router-dom"
@@ -19,10 +19,13 @@ import Logo from "../../assert/img/logo.png"
 // 导入路由设置插件
 import Router from "../../page/router/router"
 // 导入今日播报
-import Bobao from "../../page/bobao/bobao"
+// import Bobao from "../../page/bobao/bobao"
 
 // 导入往来表
 import Wanglai from "../../page/wanglai/wanglai"
+
+// 导入财纳应收账款
+import CainaYinshou from "../../page/yinshou/cainayinshou"
 
 // 导入应收账款
 import Yinshou from "../../page/yinshou/yinshou"
@@ -167,7 +170,7 @@ const { Header, Content, Footer, Sider } = Layout;
     }
     render() {
 
-        const { collapsed, user, drawerShow, words,bobaoShow } = this.state;
+        const { collapsed, user, drawerShow, words } = this.state;
         return (
             <div className="main">
                 {/* 总布局 */}
@@ -208,6 +211,7 @@ const { Header, Content, Footer, Sider } = Layout;
                                         <Route path="/main/luyou" component={Router}></Route>
                                         <Route path="/main/wanglai" component={Wanglai}></Route>
                                         <Route path="/main/yinshou" component={Yinshou}></Route>
+                                        <Route path="/main/cainaYinshou" component={CainaYinshou}></Route>
                                         <Redirect to="/main/index"></Redirect>
                                     </Switch>
 
@@ -241,7 +245,7 @@ const { Header, Content, Footer, Sider } = Layout;
                 </div>
 
                 {/* 咨询提醒 */}
-                <div className="zixun">
+                {/* <div className="zixun">
                     <Modal
                     title="今日简报"
                     visible={bobaoShow}
@@ -252,7 +256,7 @@ const { Header, Content, Footer, Sider } = Layout;
                     >
                        <Bobao ref={node=>this.BobaoRef=node} user={user}></Bobao>
                     </Modal>
-                </div>
+                </div> */}
             </div>
         )
     }

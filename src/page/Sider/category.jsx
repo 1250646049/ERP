@@ -103,8 +103,14 @@ export default class Category extends Component {
                             author: 'yinshou'
                         })
 
-                    }}>  应收账款自动提醒</Menu.Item>
+                    }}>(U)应收账款自动提醒</Menu.Item>
+                                        <Menu.Item key="cainayinshou" onClick={() => {
+                        PubSub.publish("tiaozhuan", {
+                            path: "/main/cainaYinshou",
+                            author: 'cainayinshou'
+                        })
 
+                    }}>(财纳)应收账款自动提醒</Menu.Item>
                 </SubMenu>
             </Menu>
 
