@@ -163,3 +163,13 @@ export const selectYsk003=(number,type,search)=>axios.get("/selectYsk003",{param
 
 
 export const searchYsk003=(type,search)=>axios.get("/searchYsk003",{params:{type,search}})
+
+
+
+// 查询试题库 模糊匹配
+
+export const selectExamLike=(type,content)=>axios.get("/selectExamLike",{params:{type,content}})
+
+// 查询试题库总条数
+
+export const selectCount=()=>axios.get("/selectCount")

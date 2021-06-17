@@ -8,12 +8,35 @@ const { SubMenu } = Menu;
 
 
 export default class Category extends Component {
+    state={
+        type:"work"
 
+    }
+    componentDidMount(){
+        PubSub.subscribe("alterSid",(message,key)=>{
+            let type="work"
+            if(Number(key)===1){
+                type="work"
+            }else if(Number(key)===2){
+                type="fuzhu"
+            }else if(Number(key)===3){
+                type="sale"
+            }
+            this.setState({
+                type
+            })
 
+        })
+
+        
+    }
 
     render() {
+        const {type}=this.state
         return (
-            <Menu theme="dark" mode="inline"  >
+         <div>   
+             {/* work */}
+            <Menu theme="dark" mode="inline" style={{display:type==='work'?'block':'none'}}  >
                 {/* 首页 */}
                 <Menu.Item
                     onClick={
@@ -114,6 +137,38 @@ export default class Category extends Component {
                 </SubMenu>
             </Menu>
 
+
+            {/* 辅助 */}
+            <Menu theme="dark" mode="inline" style={{display:type==='fuzhu'?'block':'none'}} >
+               
+                {/* sop试题库*/}
+                <SubMenu key="exam" icon={<RedditOutlined />} title="试题库检索">
+                    <Menu.Item key="exam" onClick={() => {
+                        PubSub.publish("tiaozhuan", {
+                            path: "/main/exam",
+                            author: 'exam'
+                        })
+
+                    }}>SOP试题库</Menu.Item>
+                </SubMenu>
+            </Menu>
+
+            {/* 薪资系统 */}
+                        {/* 辅助 */}
+           <Menu theme="dark" mode="inline" style={{display:type==='sale'?'block':'none'}} >
+               
+               {/* sop试题库*/}
+               <SubMenu key="setting" icon={<RedditOutlined />} title="基础设置">
+                   <Menu.Item key="setting" onClick={() => {
+                       PubSub.publish("tiaozhuan", {
+                           path: "/main/sz_salary",
+                           author: 'sz_salary'
+                       })
+
+                   }}>信息维护</Menu.Item>
+               </SubMenu>
+           </Menu>
+          </div>          
         )
     }
 }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { Button, Input, Form, message, Upload } from 'antd';
 import { getEmail, setEmail } from "../../axios/index"
-
+import {serverUrl} from "../../config/config"
 import { UploadOutlined } from '@ant-design/icons';
 export default class Wuliu extends Component {
     state = {
@@ -118,7 +118,7 @@ export default class Wuliu extends Component {
 
                             >{this.state.active ? '打开激活' : '关闭激活'}</Button>
                             <Upload 
-                            action="/wuliu/upload"
+                            action={serverUrl+"/wuliu/upload"}
                             style={{marginLeft:20}} 
                             onChange={(file)=>{
                                 const {response}=file['file']

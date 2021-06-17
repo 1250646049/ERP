@@ -55,5 +55,6 @@
     "@types/react": "^17.0.5",
     "babel-plugin-import": "^1.13.3"
   },
-  "proxy": "http://localhost:3008"
+  "proxy":"http://localhost:3008"
+  
 }
