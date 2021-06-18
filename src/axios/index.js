@@ -173,3 +173,14 @@ export const selectExamLike=(type,content)=>axios.get("/selectExamLike",{params:
 // 查询试题库总条数
 
 export const selectCount=()=>axios.get("/selectCount")
+
+
+// 薪资系统
+// 查询所有基本信息
+
+export const selectAllNews=()=>axios.get("/selectAllNews")
+
+
+// 拼接sql删除薪资内容
+
+export const deleteContent=(data,type,code)=>axios.get("/deleteContent",{params:{data,type,code}})
