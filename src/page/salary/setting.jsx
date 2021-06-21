@@ -1,19 +1,23 @@
-import { Button, Card, Table,  Tabs,Popconfirm, message, Modal, Input } from 'antd'
+import { Button, Card, Table,  Tabs,Popconfirm, message, Modal, Input, Select } from 'antd'
 import Form from 'antd/lib/form/Form'
 import FormItem from 'antd/lib/form/FormItem'
 import React, { Component } from 'react'
-import {selectAllNews,deleteContent} from "../../axios/index"
+import {selectAllNews,deleteContent,updateWorkshop, insertWorkshop} from "../../axios/index"
+const {Option}=Select
 const {TabPane}=Tabs
 export default class Setting extends Component{
     state={
         work:[],
+        workFinal:[],
         team:[],
         subsidyProject:[],
         project:[],
         process:[],
         person:[],
         HY_Department:[],
-        workShow:false
+        workShow:false,
+        workBm:"一部",
+        type:"alter"
     }
     componentDidMount(){
 
@@ -27,6 +31,7 @@ export default class Setting extends Component{
         console.log(data);
         this.setState({
             work:data['work'],
+            workFinal:data['work'],
             team:data['team'],
             subsidyProject:data['subsidyProject'],
             project:data['project'],
@@ -86,8 +91,52 @@ export default class Setting extends Component{
 
 
     }
+    // 修改车间信息
+    updateWorkshop=async()=>{
+       
+            
+        try{
+            let validate= await this.WorkRef.validateFields()
+         if(this.state.type==='alter'){
+            let {status}=await updateWorkshop(validate)
+            if(status){
+                this.setState({
+                    workShow:false
+                },()=>{
+                    message.success("恭喜你，更新车间信息成功！")
+                    this.initData()
+                })
+            }else {
+                throw new Error("抱歉，更新车间信息失败！")
+            }
+        }else {
+            let {status}=await insertWorkshop(validate['WorkshopName'],this.state.workBm)
+            if(status){
+                this.setState({
+                    workShow:false
+                },()=>{
+                    message.success("恭喜你，添加一条车间信息成功！")
+                    this.initData()
+                })
+            }else {
+                throw new Error("抱歉，添加一条车间信息失败！")
+            }
+
+        }
+          }catch{
+            message.error("车间名称不能为空！或者服务器出现故障....")
+          }
+       
+
+
+    }
+    resetWorkshop=async()=>{
+        this.WorkRef&&await this.WorkRef.resetFields();
+
+
+    }
     render(){
-        const {work,team,person,process,project,subsidyProject,HY_Department,workShow}=this.state
+        const {work,team,person,process,project,subsidyProject,HY_Department,workShow,workBm,type}=this.state
     //    车间信息
         const WorkColumns=[
             {
@@ -123,7 +172,8 @@ export default class Setting extends Component{
                     return <div>
                         <Button type="primary" onClick={()=>{
                             this.setState({
-                                workShow:true
+                                workShow:true,
+                                type:"alter"
                             },()=>{
                                 this.WorkRef.setFieldsValue({
                                     WorkshopCode,
@@ -466,6 +516,41 @@ export default class Setting extends Component{
                   >
                   <Tabs type="line"  >
                         <TabPane tab="车间信息" key="车间信息">
+                         <div className="utils" style={{margin:10}}>
+                                <Button type="primary" onClick={
+
+                                    ()=>{
+                                        this.resetWorkshop()
+                                        this.setState({
+                                            workShow:true,
+                                            type:"add"
+                                        })
+                                    }
+                                }>添加车间</Button>
+                                <Input placeholder="输入车间信息进行检索" style={{width:400,marginLeft:15}} onInput={(e)=>{
+                                    let {value}=e.target
+                                    let time=null;
+                                    if(value.trim()){
+                                     
+                                      let data=this.state.workFinal.filter((item)=>{
+                                        return item['WorkshopName'].includes(value)
+                                    })
+                                      time&&(time=null)
+                                      time=window.setTimeout(()=>{
+                                        this.setState({
+                                            work:[...data]
+                                        })
+                                      
+                                      },500)
+
+
+                                    }else {
+                                       this.initData()
+                                    }
+
+
+                                }}></Input>
+                         </div>
                         <Table
                                 columns={WorkColumns}
                                 dataSource={work}
@@ -528,8 +613,9 @@ export default class Setting extends Component{
                     <Modal
                     title="修改车间信息"
                     visible={workShow}
-                    okText="修改"
+                    okText={type==='alter'?"修改":'添加'}
                     cancelText="取消"
+                    onOk={this.updateWorkshop}
                     onCancel={()=>{
                         this.setState({
                             workShow:false
@@ -543,6 +629,7 @@ export default class Setting extends Component{
                           <FormItem
                           label="车间编码"
                           name="WorkshopCode"
+                          style={{display:type==="alter"?'':"none"}}
                           >
                               <Input disabled={true}/>
                           </FormItem>
@@ -550,8 +637,29 @@ export default class Setting extends Component{
                           <FormItem
                           label="车间名称"
                           name="WorkshopName"
+                          rules={[{
+                              required:true,message:"请务必填写车间名称",trigger:"blur"
+                          }]}
                           >
                               <Input/>
+
+                          </FormItem>
+
+                          <FormItem
+                          label="部门"
+                          name="bm"
+                          style={{display:type==="add"?'':"none"}}
+                          >
+                              <Select defaultValue={workBm} onChange={(v)=>{
+                                  this.setState({
+                                      workBm:v
+                                  })
+
+
+                              }}>
+                                  <Option value="一部">一部</Option>
+                                  <Option value="二部">二部</Option>
+                              </Select>
 
                           </FormItem>
                         </Form>

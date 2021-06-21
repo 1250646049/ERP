@@ -184,3 +184,9 @@ export const selectAllNews=()=>axios.get("/selectAllNews")
 // 拼接sql删除薪资内容
 
 export const deleteContent=(data,type,code)=>axios.get("/deleteContent",{params:{data,type,code}})
+
+// 更新车间信息
+export const updateWorkshop=(data)=>axios.post("/updateWorkshop",data)
+
+// 添加一条车间信息
+export const insertWorkshop=(WorkshopName,bm)=>axios.post("/insertWorkshop",{WorkshopName,bm})
