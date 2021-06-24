@@ -190,3 +190,10 @@ export const updateWorkshop=(data)=>axios.post("/updateWorkshop",data)
 
 // 添加一条车间信息
 export const insertWorkshop=(WorkshopName,bm)=>axios.post("/insertWorkshop",{WorkshopName,bm})
+
+
+// 添加一条班组信息
+export const insertTeam=({WorkshopCode, TeamName, number, bm})=>axios.post("/insertTeam",{WorkshopCode, TeamName, number, bm})
+// 修改一条班组信息
+
+export const alterTeam=({TeamCode,WorkshopCode,TeamName,number,bm})=>axios.post("/alterTeam",{TeamCode,WorkshopCode,TeamName,number,bm})

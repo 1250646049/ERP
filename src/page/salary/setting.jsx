@@ -1,8 +1,8 @@
-import { Button, Card, Table,  Tabs,Popconfirm, message, Modal, Input, Select } from 'antd'
+import { Button, Card, Table,  Tabs,Popconfirm, message, Modal, Input, Select, Tag } from 'antd'
 import Form from 'antd/lib/form/Form'
 import FormItem from 'antd/lib/form/FormItem'
 import React, { Component } from 'react'
-import {selectAllNews,deleteContent,updateWorkshop, insertWorkshop} from "../../axios/index"
+import {selectAllNews,deleteContent,updateWorkshop, insertWorkshop,insertTeam,alterTeam} from "../../axios/index"
 const {Option}=Select
 const {TabPane}=Tabs
 export default class Setting extends Component{
@@ -10,6 +10,7 @@ export default class Setting extends Component{
         work:[],
         workFinal:[],
         team:[],
+        teamFinal:[],
         subsidyProject:[],
         project:[],
         process:[],
@@ -17,7 +18,11 @@ export default class Setting extends Component{
         HY_Department:[],
         workShow:false,
         workBm:"一部",
-        type:"alter"
+        type:"alter",
+        teamWorkValue:"CJ0001",
+        teamBm:"一部",
+        teamShow:false,
+        teamType:"add"
     }
     componentDidMount(){
 
@@ -28,11 +33,13 @@ export default class Setting extends Component{
     // 初始化数据
     initData=async()=>{
         let {data}=await selectAllNews()
-        console.log(data);
+      
         this.setState({
             work:data['work'],
             workFinal:data['work'],
+     
             team:data['team'],
+            teamFinal:data['team'],
             subsidyProject:data['subsidyProject'],
             project:data['project'],
             process:data['process'],
@@ -135,8 +142,47 @@ export default class Setting extends Component{
 
 
     }
+    resetTeam=async()=>{
+        this.refTeam&&await this.refTeam.resetFields();
+
+
+    }
+    // 添加一条班组信息
+    insertOneTeam=async()=>{
+        try{
+            let result=await this.refTeam.validateFields()
+            result['WorkshopCode']=this.state.teamWorkValue
+            result['bm']=this.state.teamBm
+            if(this.state.teamType==='add'){
+                let {status}=await insertTeam(result)
+                if (status){
+                    this.setState({
+                        teamShow:false,
+                    },()=>{
+                        message.success("添加班组信息成功！")
+                        this.initData()
+                    })
+                }else throw new Error("添加班组信息失败！")
+            }else {
+                let {status}=await alterTeam(result)
+                if (status){
+                    this.setState({
+                        teamShow:false,
+                    },()=>{
+                        message.success("修改班组信息成功！")
+                        this.initData()
+                    })
+                }else throw new Error("修改班组信息失败！")
+            }
+        }catch{
+            message.error("请将表单项填写完整，或者服务器请求出现故障....")
+        }
+
+    }
     render(){
-        const {work,team,person,process,project,subsidyProject,HY_Department,workShow,workBm,type}=this.state
+        const {work,team,person,process,project,subsidyProject,HY_Department,workShow,workBm,type,teamWorkValue,teamBm
+        ,teamShow,teamType
+        }=this.state
     //    车间信息
         const WorkColumns=[
             {
@@ -249,9 +295,30 @@ export default class Setting extends Component{
                 title:"操作",
                 key:"caozuo",
                 render:(d)=>{
-                    const {TeamName,TeamCode}=d
+                    let {TeamName,TeamCode,number,bm,WorkshopCode}=d
+                   
                     return <div>
-                        <Button type="primary">修改</Button>
+                        <Button type="primary" onClick={()=>{
+                            console.log(bm[0],WorkshopCode[0]);
+                            this.setState({
+                                teamBm:bm[0],
+                                teamWorkValue:WorkshopCode[0],
+                                teamShow:true,
+                                teamType:"edit",
+  
+                                
+                            },()=>{
+                                this.resetTeam()
+                                this.refTeam.setFieldsValue({
+                                    TeamCode,
+                                    TeamName,
+                                    number,
+                                 
+                                })
+                            })
+
+
+                        }}>修改</Button>
                         <span style={{marginLeft:15}}></span>
                         <Popconfirm placement="topRight" title={'您确定要删除['+TeamName+']班组吗?'} onConfirm={()=>{
                             this.onDelete('team',TeamCode)
@@ -527,7 +594,7 @@ export default class Setting extends Component{
                                         })
                                     }
                                 }>添加车间</Button>
-                                <Input placeholder="输入车间信息进行检索" style={{width:400,marginLeft:15}} onInput={(e)=>{
+                                <Input placeholder="输入车间名称进行检索" style={{width:400,marginLeft:15}} onInput={(e)=>{
                                     let {value}=e.target
                                     let time=null;
                                     if(value.trim()){
@@ -535,7 +602,7 @@ export default class Setting extends Component{
                                       let data=this.state.workFinal.filter((item)=>{
                                         return item['WorkshopName'].includes(value)
                                     })
-                                      time&&(time=null)
+                                      time&&(time=null) 
                                       time=window.setTimeout(()=>{
                                         this.setState({
                                             work:[...data]
@@ -558,11 +625,47 @@ export default class Setting extends Component{
                                 ></Table>
                         </TabPane>
                         <TabPane tab="班组信息" key="班组信息">
+                        <div className="utils" style={{margin:10}}>
+                                <Button type="primary" onClick={
+
+                                    ()=>{
+                                        this.resetWorkshop()
+                                        this.setState({
+                                            teamShow:true,
+                                            teamType:"add"
+                                        })
+                                    }
+                                }>添加车间</Button>
+                                <Input placeholder="输入班组名称进行检索" style={{width:400,marginLeft:15}} onInput={(e)=>{
+                                    let {value}=e.target
+                                    let time=null;
+                                    if(value.trim()){
+                                     
+                                      let data=this.state.teamFinal.filter((item)=>{
+                                        return item['TeamName'].includes(value)
+                                    })
+                                      time&&(time=null) 
+                                      time=window.setTimeout(()=>{
+                                        this.setState({
+                                            team:[...data]
+                                        })
+                                      
+                                      },500)
+
+
+                                    }else {
+                                       this.initData()
+                                    }
+
+
+                                }}></Input>
+                         </div>
                         <Table
                                 columns={TeamColumns}
                                 dataSource={team}
                                 bordered={true}
                                 ></Table>
+                            
                         </TabPane>
                         <TabPane tab="员工信息" key="员工信息">
                         <Table
@@ -609,7 +712,7 @@ export default class Setting extends Component{
                   </Card>
                 </div>
                 <div className="utils">
-                    {/* 修改modul */}
+                    {/* 修改modul  workmodul*/}
                     <Modal
                     title="修改车间信息"
                     visible={workShow}
@@ -665,6 +768,93 @@ export default class Setting extends Component{
                         </Form>
                     </Modal>
 
+                   {/*班组modul  */}
+                   <Modal
+                   visible={teamShow}
+                   title={teamType==='add'?"添加一条班组信息":'修改此条班组信息'}
+                   okText="确定"
+                   cancelText="取消"
+                   onCancel={()=>{
+                       this.setState({
+                        teamShow:false
+                       })
+                   }}
+                   onOk={this.insertOneTeam}
+                   >
+                       <Form
+                       ref={node=>this.refTeam=node}
+                       >
+                           <FormItem
+                           label="关联车间"
+
+                           >
+                               <Select 
+                                 
+                                 name="WorkShopName"
+                                 defaultValue={teamWorkValue}
+                                 onChange={(v)=>{
+                                    this.setState({
+                                        teamWorkValue:v
+                                    })
+
+                                 }}
+                               >
+                                   {work.map((item,index)=>{
+
+                                       return <Option key={index} value={item['WorkshopCode']} ><Tag color={item['bm']==='一部'?'green':'blue'}>{item['bm']}</Tag> {item['WorkshopName']}</Option>
+                                   })}
+                               </Select>
+                           </FormItem>
+
+                           <FormItem
+                           label="编制人数"
+                           name="number"
+                           rules={
+                               [
+                                   {"required":true,message:"编制人数不能为空！",trigger:"blur"}
+                               ]
+                           }
+                           >
+                               <Input type="number"></Input>
+                           </FormItem>
+
+                           <FormItem
+                           label="班组名称"
+                           name="TeamName"
+                           rules={
+                            [
+                                {"required":true,message:"班组名称不能为空！",trigger:"blur"}
+                            ]
+                        }
+                           >
+                               <Input/>
+                           </FormItem>
+
+                           <FormItem
+                           label="班组编号"
+                           name="TeamCode"
+                           style={{display:teamType==='add'?'none':''}} 
+                           >
+                               <Input disabled={true}/>
+                           </FormItem>
+                           <FormItem
+                           label="班组编号"
+                           >
+                               <Select
+                               defaultValue={teamBm}
+                               onChange={(v)=>{
+                                   this.setState({
+                                    teamBm:v
+                                   })
+                               }}
+                               >
+                                   <Option value="一部">一部</Option>
+                                   <Option value="二部">二部</Option>
+                               </Select>
+                           </FormItem>
+                       </Form>
+
+                   </Modal>
                 </div>
             </div>
         )
