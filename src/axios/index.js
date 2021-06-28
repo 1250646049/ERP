@@ -197,3 +197,20 @@ export const insertTeam=({WorkshopCode, TeamName, number, bm})=>axios.post("/ins
 // 修改一条班组信息
 
 export const alterTeam=({TeamCode,WorkshopCode,TeamName,number,bm})=>axios.post("/alterTeam",{TeamCode,WorkshopCode,TeamName,number,bm})
+
+// 插入一条员工信息
+
+export const insertPerson=(data)=>axios.post("/insertPerson",data)
+
+// 修改一条员工信息
+export const updatePerson=(data)=>axios.post("/updatePerson",data)
+
+// 查询所有员工信息
+export const selectPerson=()=>axios.get("/selectPerson")
+
+// 插入一条工序
+
+export const insertProcess=(data)=>axios.post("/insertProcess",data)
+
+// 修改一条工序
+export const updateProcess=(data)=>axios.post("/updateProcess",data)
