@@ -17,7 +17,7 @@ class Yinshou extends Component {
         flag: true,
         count: 0,
         currentId: "",
-
+        shoukuanList:{},
         shoukuanTime: "",
         status: false,
         fajianTime: "",
@@ -27,7 +27,7 @@ class Yinshou extends Component {
         mysqlId: "",
         mysql_type: "预付款",
         quyu: "华南区域",
-        search: 'cbdlcode',
+        search: 'cCusName',
         searchValue: "",
         mysql: []
  
@@ -46,9 +46,10 @@ class Yinshou extends Component {
             data: data['list'],
             total: data['total'],
             flag: true,
-            count
+            count,
+            shoukuanList:data['shoukuan']
         }, () => {
-            console.log(this.state.data)
+           
 
         })
     }
@@ -75,7 +76,6 @@ class Yinshou extends Component {
                 beizhu: mysql['beizhu'],
                 edu: mysql['edu'],
                 email: mysql['email'],
-
                 jilu: mysql['jilu'],
                 price: mysql['price'],
                 quyu: mysql['quyu'],
@@ -165,9 +165,9 @@ class Yinshou extends Component {
         let { value } = this.refSearch.state
         if(content) value=content
         if (!value) return window.location.reload();
-        console.log(this.state.search, value)
+     
         let data = await searchYsk(this.state.search, value)
-        console.log(data)
+     
         this.setState({
             data: data['list'],
             total: data['total'],
@@ -324,28 +324,20 @@ class Yinshou extends Component {
         ]
         const { data, total, flag, status, visable, currentId, type, mysql_type, quyu, search } = this.state
         const columns = [
-            {
-                title: "订单号",
-                dataIndex: "cbdlcode",
-                key: "cbdlcode",
-                fixed: "left"
-            }, {
-                title: "业务员",
-                dataIndex: "cPersonName",
-                key: "cPersonName"
-            }, {
+             {
                 title: "客户(简称)",
                 dataIndex: "cCusAbbName",
                 key: "cCusAbbName"
-            }, {
-                title: "制单日期",
-                fixed: "right",
-                key: "dDate",
-                render: ({ dDate }) => {
-                    let d = new Date(dDate)
-
-                    return <span>{d.getFullYear() + '-' + (d.getMonth() + 1) + "-" + d.getDate()}</span>
-                }
+            },
+            {
+                title:"客户类型",
+                dataIndex:"types",
+                key:"types"
+            },
+        {
+                title: "业务员",
+                dataIndex: "cPersonName",
+                key: "cPersonName"
             }, {
                 title: "订单数量",
                 dataIndex: "iQuantity",
@@ -356,6 +348,19 @@ class Yinshou extends Component {
                 dataIndex: "iSum",
                 key: "iSum",
                 fixed: "right"
+            },{
+                title:"到款金额",
+                
+                key:"daokuanjine",
+                render:(d)=>{
+                   const {cCusName}=d;
+                   const {shoukuanList}=this.state
+             
+
+                    return <span>{shoukuanList[cCusName]&&shoukuanList[cCusName]['money']}</span>
+
+
+                }
             }, {
                 title: "是否结案",
                 render: ({ mysql }) => {
@@ -405,12 +410,12 @@ class Yinshou extends Component {
                     <Select defaultValue={search} onChange={(d) => this.setState({
                         search: d
                     })}>
-                        <Option value="cbdlcode" key="cbdlcode">订单号</Option>
+                          <Option value="cCusName" key="cCusName">客户</Option>
                         <Option value="cPersonName" key="cPersonName">业务员</Option>
-                        <Option value="cCusName" key="cCusName">客户</Option>
+                      
 
                     </Select>
-                    <Input.Search ref={node => this.refSearch = node} placeholder={`请输入订单号进行订单的筛选`} style={{ width: 400 }} onSearch={this.onSearch}></Input.Search>
+                    <Input.Search ref={node => this.refSearch = node} placeholder={`请输入${search==='cCusName'?'客户名称':'业务员'}进行的筛选`} style={{ width: 400 }} onSearch={this.onSearch}></Input.Search>
                 </div>
                 <Spin tip="加载中..." size="large" style={{ position: "fixed", top: "50%", left: "50%", zIndex: 99999, display: flag ? 'none' : "block" }}>
                 </Spin>

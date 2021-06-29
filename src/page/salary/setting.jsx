@@ -3,7 +3,10 @@ import Form from 'antd/lib/form/Form'
 import FormItem from 'antd/lib/form/FormItem'
 import { subscribe, unsubscribe } from 'pubsub-js'
 import React, { Component } from 'react'
-import { selectAllNews, deleteContent, updateWorkshop, insertWorkshop, insertTeam, alterTeam, insertPerson, updatePerson, selectPerson,insertProcess } from "../../axios/index"
+import { selectAllNews, deleteContent, updateWorkshop, insertWorkshop, insertTeam, alterTeam, insertPerson, 
+    updatePerson, selectPerson,insertProcess, updateProcess,updateProject,SubsidyProject,updateSubsidyProject,insertHY_Department,
+  insertProject
+} from "../../axios/index"
 import Work from "./workDetail"
 import Utils from "../../sortComponents/utils/utils"
 // 导出插件
@@ -39,7 +42,21 @@ export default class Setting extends Component {
         processShow:false,
         processType:"add",
         processWork:"",
-        processBm:"一部"
+        processBm:"一部",
+        projectShow:false,
+        projectBm:"一部",
+        projectParent:"",
+        projectType:"add",
+        currentProjectCode:"",
+        subsidyProjectFinal:[],
+        subsidyProjectType:"add",
+        subsidyProjectShow:false,
+        subsidyProjectBm:"一部",
+        currentSubId:"",
+        HY_DepartmentFinal:[],
+        HY_DepartmentType:"add",
+        HY_DepartmentShow:false,
+        HY_DepartmentBm:"一部"
 
     }
     componentDidMount() {
@@ -63,10 +80,13 @@ export default class Setting extends Component {
             teamFinal: data['team'],
             teamWorkFinal: data['team'],
             subsidyProject: data['subsidyProject'],
+            subsidyProjectFinal:data['subsidyProject'],
             project: data['project'],
+            projectFinal:data['project'],
             process: data['process'],
             processFinal:data['process'],
             HY_Department: data['HY_Department'],
+            HY_DepartmentFinal: data['HY_Department'],
             spinShow: false
         })
 
@@ -329,6 +349,41 @@ export default class Setting extends Component {
 
 
     }
+    // 添加或修改计时项目
+    addProject=async()=>{
+        try{
+            let result=await this.projectRef.validateFields()
+            result['ParentCode']=this.state.projectParent
+            result['bm']=this.state.projectBm
+            if(this.state.projectType==='add'){
+                let {status}=await insertProject(result)
+                if(status){
+                    this.setState({
+                        projectShow:false
+                    },()=>{
+                        message.success("恭喜你，添加了一条计时项目！")
+                        this.initData()
+                    })
+                }else throw new Error("error")
+            }else {
+                result['ProjectCode']=this.state.currentProjectCode
+                let  {status}=await updateProject(result)
+                if(status){
+                    this.setState({
+                        projectShow:false
+                    },()=>{
+                        message.success("恭喜你，修改了一条计时项目！")
+                        this.initData()
+                    })
+                }else throw new Error("error")
+            }
+
+        }catch{
+            message.error("抱歉，请将表单项填写完整！")
+        }
+
+
+    }
     // 导出工序
     export2process=()=>{
         const {process}=this.state
@@ -363,26 +418,132 @@ export default class Setting extends Component {
             let result=await this.processRef.validateFields()
             result['cj']=this.state.processWork
             result['bm']=this.state.processBm
-            let {status}=await insertProcess(result)
-            if(status){
-                this.setState({
-                    processShow:false,
-                    processWork:this.state.work[0]['WorkshopName']
-                },()=>{
-                    message.success("恭喜你，添加一条工序成功！")
-                    this.initData()
-
-                })
-            }else throw new Error("message")
+            if(this.state.processType==='add'){
+                let {status}=await insertProcess(result)
+                if(status){
+                    this.setState({
+                        processShow:false,
+                        processWork:this.state.work[0]['WorkshopName']
+                    },()=>{
+                        message.success("恭喜你，添加一条工序成功！")
+                        this.initData()
+    
+                    })
+                }else throw new Error("message")
+            }else {
+                let {status}=await updateProcess(result)
+                if(status){
+                    this.setState({
+                        processShow:false,
+                        processWork:this.state.work[0]['WorkshopName']
+                    },()=>{
+                        message.success("恭喜你，修改此条工序成功！")
+                        this.initData()
+    
+                    })
+                }else throw new Error("message")
+            }
         }catch{
             message.error("请将表单内容填写完整！")
         }
 
     }
+    // 修改添加补贴项目
+    insertsubsidyProject=async()=>{
+        try{
+            let result=await this.SubsidyRef.validateFields()
+            result['bm']=this.state.subsidyProjectBm
+         
+            // currentSubId
+            if(this.state.subsidyProjectType==='add'){
+                let {status}=await SubsidyProject(result)
+                if(status){
+                    this.setState({
+                        subsidyProjectShow:false
+                    },()=>{
+                        message.success("恭喜你，添加了一条补贴项目！")
+                        this.initData()
+                    })
+                }else throw new Error("error")
+            }else {
+                result['Id']=this.state.currentSubId
+                let {status}=await updateSubsidyProject(result)
+                if(status){
+                    this.setState({
+                        subsidyProjectShow:false
+                    },()=>{
+                        message.success("恭喜你，修改了一条补贴项目！")
+                        this.initData()
+                    })
+                }else throw new Error("error")
+            }
+
+        }catch{
+
+            message.error("请将表单项填写完整！")
+        }
+
+
+
+    }
+    // 修改添加请假类别
+    insertHy_Deparment=async()=>{
+        try{
+            let result=await this.HY_DepartmentRef.validateFields()
+            result['bm']=this.state.HY_DepartmentBm
+            let {status}=await insertHY_Department(result)
+            if(status){
+                this.setState({
+                    HY_DepartmentShow:false
+                },()=>{
+                    this.initData()
+                    message.success("恭喜你，填写了一条请假类别！")
+
+                })
+            }
+        }catch{
+
+            message.error("请将表单项内容填写完整！")
+        }
+    }
+    // 重置补贴项目
+    restSubsidyProject=()=>{
+        this.SubsidyRef&&this.SubsidyRef.resetFields()
+        this.setState({
+            subsidyProjectBm:"一部",
+            
+        })
+
+    }
+    // 重置请假类别
+    restHY_deparent=()=>{
+        this.HY_DepartmentRef&&this.HY_DepartmentRef.resetFields()
+        this.setState({
+            HY_DepartmentBm:"一部"
+        })
+    }
+    // 重置工序
+    restProcess=()=>{
+        this.processRef&&this.processRef.resetFields()
+        this.setState({
+            processWork:this.state.work[0]['WorkshopName'],
+            processBm:"一部"
+        })
+
+    }
+    // 重置计时项目
+    restProject=()=>{
+        this.projectRef&&this.projectRef.resetFields()
+        this.setState({
+            projectParent:'',
+            projectBm:"一部"
+        })
+    }
     render() {
         const { work, team, person, process, project, subsidyProject, HY_Department, workShow, workBm, type, teamWorkValue, teamBm
-            , teamShow, teamType, workDetailShow, personShow, spinShow,processShow,processWork,processBm
-        } = this.state
+            , teamShow, teamType, workDetailShow, personShow, spinShow,processShow,processWork,processBm,processType,projectShow,projectBm,projectParent
+        ,projectType,subsidyProjectShow,subsidyProjectType,subsidyProjectBm,HY_DepartmentShow,HY_DepartmentType,HY_DepartmentBm
+    } = this.state
         //    车间信息
         const WorkColumns = [
             {
@@ -435,7 +596,7 @@ export default class Setting extends Component {
                             this.onDelete('work', WorkshopCode)
                         }} okText="确定" cancelText="取消">
                             <Button type="default" >删除</Button>
-                        </Popconfirm>
+                        </Popconfirm> 
 
                     </div>
                 }
@@ -612,9 +773,26 @@ export default class Setting extends Component {
                 title: "操作",
                 key: "caozuo",
                 render: (d) => {
-                    const { Name, Code } = d
+                    const { Name, Code,cj,bm,UnitPrice} = d
                     return <div>
-                        <Button type="primary">修改</Button>
+                        <Button type="primary" onClick={
+                            ()=>{
+
+                                
+                                    this.setState({
+                                        processShow:true,
+                                        processBm:bm,
+                                        processWork:cj,
+                                        processType:"edit"
+                                    },()=>{
+                                        this.processRef.setFieldsValue({
+                                            Name,Code,UnitPrice
+                                        })
+                                    })
+                       
+                            }
+
+                        }>修改</Button>
                         <span style={{ marginLeft: 15 }}></span>
                         <Popconfirm placement="topRight" title={'您确定要删除[' + Name + ']工序吗?'} onConfirm={() => {
                             this.onDelete('process', Code)
@@ -663,9 +841,27 @@ export default class Setting extends Component {
                 title: "操作",
                 key: "caozuo",
                 render: (d) => {
-                    const { ProjectCode, ProjectName } = d
+                    const { ProjectCode, ProjectName,bm,ParentCode,Money } = d
                     return <div>
-                        <Button type="primary">修改</Button>
+                        <Button type="primary" onClick={
+                            ()=>{
+                                this.setState({
+                                    projectShow:true,
+                                    projectType:"edit",
+                                    projectBm:bm,
+                                    projectParent:ParentCode,
+                                    currentProjectCode:ProjectCode
+                                },()=>{
+                                    this.projectRef.setFieldsValue({
+                                       
+                                        ProjectName,Money
+
+                                    })
+                                })
+
+                            }
+
+                        }>修改</Button>
                         <span style={{ marginLeft: 15 }}></span>
                         <Popconfirm placement="topRight" title={'您确定要删除[' + ProjectName + ']项目吗?'} onConfirm={() => {
                             this.onDelete('project', ProjectCode)
@@ -712,9 +908,21 @@ export default class Setting extends Component {
                 title: "操作",
                 key: "caozuo",
                 render: (d) => {
-                    const { SubsidyName, Id } = d
+                    const { SubsidyName, Id,bm,Price } = d
                     return <div>
-                        <Button type="primary">修改</Button>
+                        <Button type="primary" onClick={()=>{
+                            this.setState({
+                                subsidyProjectShow:true,
+                                subsidyProjectType:"edit",
+                                subsidyProjectBm:bm,
+                                currentSubId:Id
+                            },()=>{
+                                this.SubsidyRef.setFieldsValue({
+                                    SubsidyName,Price
+                                })
+                            })
+
+                        }}>修改</Button>
                         <span style={{ marginLeft: 15 }}></span>
                         <Popconfirm placement="topRight" title={'您确定要删除[' + SubsidyName + ']项目吗?'} onConfirm={() => {
                             this.onDelete('subsidyProject', Id)
@@ -759,7 +967,7 @@ export default class Setting extends Component {
                 render: (d) => {
                     const { d_Name, d_ID } = d
                     return <div>
-                        <Button type="primary">修改</Button>
+                        {/* <Button type="primary">修改</Button> */}
                         <span style={{ marginLeft: 15 }}></span>
                         <Popconfirm placement="topRight" title={'您确定要删除[' + d_Name + ']类别吗?'} onConfirm={() => {
                             this.onDelete('hY_Department', d_ID)
@@ -917,11 +1125,12 @@ export default class Setting extends Component {
                                     <Button type="primary" onClick={
 
                                         () => {
-                                            
+                                            this.restProcess()
                                             this.setState({
                                                 processShow: true,
                                                 processType: "add",
-                                                processWork:work[0]&&work[0]['WorkshopName']
+                                                processWork:work[0]&&work[0]['WorkshopName'],
+                                              
                                             })
                                         }
                                     }>添加工序</Button>
@@ -960,6 +1169,42 @@ export default class Setting extends Component {
 
                             </TabPane>
                             <TabPane tab="计时项目" key="计时项目">
+                            <div className="utils" style={{ margin: 10 }}>
+                                    <Button type="primary" onClick={
+                                        () => {
+                                            this.restProject()
+                                            this.setState({
+                                                projectShow: true,
+                                                projectType: "add"
+                                             
+                                              
+                                            })
+                                        }
+                                    }>添加计时项目</Button>
+                                    <Input placeholder="输入项目名称进行检索" style={{ width: 400, marginLeft: 15 }} onInput={(e) => {
+                                        let { value } = e.target
+                                        let time = null;
+                                        if (value.trim()) {
+
+                                            let data = this.state.projectFinal.filter((item) => {
+                                                return item['ProjectName'].includes(value)
+                                            })
+                                            time && (time = null)
+                                            time = window.setTimeout(() => {
+                                                this.setState({
+                                                    project: [...data]
+                                                })
+
+                                            }, 500)
+
+
+                                        } else {
+                                            this.initData()
+                                        }
+
+
+                                    }}></Input>
+                                </div>
                                 <Table
                                     columns={ProjectColumns}
                                     dataSource={project}
@@ -968,6 +1213,43 @@ export default class Setting extends Component {
 
                             </TabPane>
                             <TabPane tab="补贴项目" key="补贴项目">
+                            <div className="utils" style={{ margin: 10 }}>
+                                    <Button type="primary" onClick={
+
+                                        () => {
+                                           this.restSubsidyProject()
+                                            this.setState({
+                                                subsidyProjectShow: true,
+                                                subsidyProjectType: "add",
+                                                subsidyProjectBm:"一部"
+                                              
+                                            })
+                                        }
+                                    }>添加补贴项目</Button>
+                                    <Input placeholder="输入补贴项目名称进行检索" style={{ width: 400, marginLeft: 15 }} onInput={(e) => {
+                                        let { value } = e.target
+                                        let time = null;
+                                        if (value.trim()) {
+
+                                            let data = this.state.subsidyProjectFinal.filter((item) => {
+                                                return item['SubsidyName'].includes(value)
+                                            })
+                                            time && (time = null)
+                                            time = window.setTimeout(() => {
+                                                this.setState({
+                                                    subsidyProject:[...data]
+                                                })
+
+                                            }, 500)
+
+
+                                        } else {
+                                            this.initData()
+                                        }
+
+
+                                    }}></Input>
+                                </div>
                                 <Table
                                     columns={SubsidyProjectColumns}
                                     dataSource={subsidyProject}
@@ -976,7 +1258,43 @@ export default class Setting extends Component {
 
                             </TabPane>
                             <TabPane tab="请假类别" key="请假类别">
+                            <div className="utils" style={{ margin: 10 }}>
+                                    <Button type="primary" onClick={
 
+                                        () => {
+                                           this.restHY_deparent()
+                                            this.setState({
+                                                HY_DepartmentShow: true,
+                                                HY_DepartmentType: "add",
+                                                HY_DepartmentBm:"一部"
+                                              
+                                            })
+                                        }
+                                    }>添加请假类别</Button>
+                                    <Input placeholder="输入补贴项目名称进行检索" style={{ width: 400, marginLeft: 15 }} onInput={(e) => {
+                                        let { value } = e.target
+                                        let time = null;
+                                        if (value.trim()) {
+
+                                            let data = this.state.HY_DepartmentFinal.filter((item) => {
+                                                return item['d_Name'].includes(value)
+                                            })
+                                            time && (time = null)
+                                            time = window.setTimeout(() => {
+                                                this.setState({
+                                                    HY_Department:[...data]
+                                                })
+
+                                            }, 500)
+
+
+                                        } else {
+                                            this.initData()
+                                        }
+
+
+                                    }}></Input>
+                                </div>
                                 <Table
                                     columns={HY_DepartmentColumns}
                                     dataSource={HY_Department}
@@ -1209,8 +1527,8 @@ export default class Setting extends Component {
                    {/*工序名称  */}
                    <Modal
                    visible={processShow}
-                   title="添加一条工序信息"
-                   okText="添加"
+                   title={processType==='add'?"添加一条工序信息":'修改此条工序'}
+                   okText={processType==='add'?"添加":"修改"}
                    cancelText="取消"
                    onOk={()=>{
                        this.insertProcess()
@@ -1265,7 +1583,7 @@ export default class Setting extends Component {
                                 ]
                             }
                             >
-                                <Input/>
+                                <Input disabled={processType==='add'?false:true}/>
 
                             </FormItem>
 
@@ -1299,6 +1617,167 @@ export default class Setting extends Component {
                             </FormItem>
                        </Form>
                    </Modal>
+                   {/* 计时项目 */}
+                    <Modal
+                    visible={projectShow}
+                    title={projectType==='add'?"添加计时项目":"修改计时项目"}
+                    okText={projectType==='add'?"添加":"修改"}
+                    cancelText="取消"
+                     onCancel={()=>{
+                         this.setState({
+                            projectShow:false
+                         })
+                     }} 
+                     onOk={this.addProject}              
+                    >
+                        <Form
+                        ref={node=>this.projectRef=node}
+                        >
+                            <FormItem
+                            label="项目大类"
+                            >
+                                <Select value={projectParent} onChange={v=>this.setState({
+                                    projectParent:v
+                                })}>
+                                    <Option value="管理人员">管理人员</Option>
+                                    <Option value="压贴车间">压贴车间</Option>
+                                    <Option value="切割车间">切割车间</Option>
+                                    <Option value="油漆车间">油漆车间</Option>
+                                    <Option value="企口车间">企口车间</Option>
+                                    <Option value="各车间杂工人员">各车间杂工人员</Option>
+                                </Select>
+                            </FormItem>
+
+                            <FormItem
+                            label="项目小类"
+                            name="ProjectName"
+                            rules={
+                                [
+                                    {required:true,message:"抱歉，项目名称不能为空！",trigger:"blur"}
+                                ]
+                            }
+                            >
+                                <Input></Input>
+                            </FormItem>
+
+                            <FormItem
+                            label="项目工资"
+                            name="Money"
+
+                            >
+                                <Input type="number"  suffix="元"></Input>
+                            </FormItem>
+
+                            <FormItem
+                            label="所属部门"
+                            name="bm"
+                            >
+                                <Select defaultValue={projectBm} onChange={(v)=>{
+                                    this.setState({
+                                        projectBm:v
+                                    })
+                                }}>
+                                    <Option value="一部">一部</Option>
+                                    <Option value="二部">二部</Option>
+                                </Select>
+                            </FormItem>
+                        </Form>
+                    </Modal>             
+                        {/*补贴项目  */}
+                    <Modal
+                    visible={subsidyProjectShow}
+                    title= {subsidyProjectType==='add'?"添加一条补贴项目":"修改一条补贴项目"}
+                    okText={subsidyProjectType==='add'?'添加':'修改'}
+                    onOk={this.insertsubsidyProject}
+                    cancelText="取消"
+                    onCancel={()=>{
+                        this.setState({
+                            subsidyProjectShow:false
+                        })
+                    }}
+                    >
+                        <Form
+                        ref={node=>this.SubsidyRef=node}
+                        >
+                            <FormItem
+                            label="补贴项目"
+                            name="SubsidyName"
+                            rules={
+                                [
+                                    {required:true,message:"请输入补贴项目名称",trigger:"blur"}
+                                ]
+                            }
+                            >
+                                <Input/>
+                            </FormItem>
+
+                           <FormItem
+                           label="项目价格"
+                           name="Price"
+                           >
+                               <Input type="number" suffix="元"></Input>
+                            </FormItem> 
+
+                        <FormItem
+                        label="所属部门"
+                        name="bm"
+                        >
+                            <Select defaultValue={subsidyProjectBm} onChange={v=>this.setState({
+                                subsidyProjectBm:v
+                            })}>
+                                <Option value="一部">一部</Option>
+                                <Option value="二部">二部</Option>
+                            </Select>
+                        </FormItem>
+                        </Form>
+                    </Modal>
+               
+                    {/* 请假类别 */}
+                    <Modal
+                    visible={HY_DepartmentShow}
+                    title={HY_DepartmentType==='add'?'添加一条请假类别':'修改一条请假类别'}
+                    okText={HY_DepartmentType==='add'?'添加':'修改'}
+                    cancelText="取消"
+                    onCancel={
+                        ()=>{
+                            this.setState({
+                                HY_DepartmentShow:false
+                            })
+                        }
+                    }
+                    onOk={this.insertHy_Deparment}
+                    >
+                        <Form
+                        ref={node=>this.HY_DepartmentRef=node}
+                        >
+                            <FormItem
+                            label="类别名称"
+                            name="d_Name"
+                            rules={
+                                [
+                                    {required:true,message:"抱歉，类别名称不能为空",trigger:"blur"}
+                                ]
+                            }
+                            >
+                                <Input/>
+                            </FormItem>
+                            <FormItem
+                            label="所属部门"
+                            name="bm"
+                            >
+                                <Select
+                                defaultValue={HY_DepartmentBm}
+                                onChange={v=>this.setState({
+                                    HY_DepartmentBm:v
+                                })}
+                                >
+                                    <Option value="一部">一部</Option>
+                                    <Option value="二部">二部</Option>
+                                </Select>
+                            </FormItem>
+                        </Form>
+
+                    </Modal>
                 </div>
             </div>
         )

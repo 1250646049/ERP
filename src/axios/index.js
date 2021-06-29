@@ -214,3 +214,19 @@ export const insertProcess=(data)=>axios.post("/insertProcess",data)
 
 // 修改一条工序
 export const updateProcess=(data)=>axios.post("/updateProcess",data)
+
+// 添加一条计时项目
+export const insertProject=(data)=>axios.post("/insertProject",data)
+
+// 修改一条计时项目
+export const updateProject=(data)=>axios.post("/updateProject",data)
+
+// 添加补贴项目
+export const SubsidyProject=(data)=>axios.post("/SubsidyProject",data)
+ 
+// 修改补贴项目
+export const updateSubsidyProject=(data)=>axios.post("/updateSubsidyProject",data) 
+
+// 添加请假类别
+
+export const insertHY_Department=(data)=>axios.post("/insertHY_Department",data)
