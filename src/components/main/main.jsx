@@ -32,9 +32,10 @@ import Yinshou from "../../page/yinshou/yinshou"
 
 // 导入薪资系统
 import Setting from "../../page/salary/setting"
+import Query from "../../page/salary/query"
 
 // 导入试题库
-
+import Din_Fukuan from "../../page/exam/din_fukuan"
 import Exam from "../../page/exam/exam"
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -247,8 +248,8 @@ class Main extends Component {
                                     <Route path="/main/cainaYinshou" component={CainaYinshou}></Route>
                                     <Route path="/main/exam" component={Exam}></Route>
                                     <Route path="/main/sz_salary" component={Setting}></Route>
-
-                            
+                                     <Route path="/main/salary_query" component={Query}></Route>   
+                                     <Route path="/main/din_Fukuan" component={Din_Fukuan}></Route>   
                                     <Redirect to="/main/index"></Redirect>
                                 </Switch>
 

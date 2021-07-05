@@ -6,20 +6,20 @@ import { connect } from "react-redux"
 //  导入请求
 
 import "./css/yinshou.css"
-import { selectYsk, addYinshou, alterYinshou, deleteOrder, alterJiean } from "../../axios/index"
+import { selectYsk003 as selectYsk, addYinshou, alterYinshou, searchYsk003 as searchYsk, deleteOrder, alterJiean } from "../../axios/index"
 
 const { Option } = Select
 
-class Yinshou extends Component {
+class CainaYinshou extends Component {
     state = {
         data: [],
         total: 0,
         flag: true,
         count: 0,
         currentId: "",
-        shoukuanList:{},
+
         shoukuanTime: "",
-        status: false,
+        status: false, 
         fajianTime: "",
         visable: false,
         page: 1,
@@ -27,18 +27,10 @@ class Yinshou extends Component {
         mysqlId: "",
         mysql_type: "预付款",
         quyu: "华南区域",
-        search: 'cCusName',
+        search: 'cbdlcode',
         searchValue: "",
-        mysql: [],
-        totalprice:0,
-        chae:0,
-        cCusName:"",
-        shoukuanData:{},
-        finalData:[],
-        email:"",
-        iQuantity:0,
-        iSum:0
- 
+        mysql: []
+
 
     }
     initData = async (count = 10) => {
@@ -49,17 +41,14 @@ class Yinshou extends Component {
             flag: false,
         })
         let data = await selectYsk(count)
-        
+        console.log(data)
         this.setState({
             data: data['list'],
             total: data['total'],
             flag: true,
-            count,
-            shoukuanList:data['shoukuan'],
-            shoukuanData:data['data'],
-            finalData:data['list']
+            count
         }, () => {
-           
+            console.log(this.state.data)
 
         })
     }
@@ -91,17 +80,14 @@ class Yinshou extends Component {
                 quyu: mysql['quyu'],
                 type: mysql['type'],
                 shoujianren: mysql['shoujianren'],
-
             })
         })
 
     }
     // 提交内容
     onSubmit = async () => {
-
         try {
             let result = await this.refForm.validateFields()
-
             result['riqi'] = this.state.shoukuanTime
             result['jiedian'] = this.state.fajianTime
             result['status'] = Number(this.state.status)
@@ -110,12 +96,6 @@ class Yinshou extends Component {
             result['name'] = this.props.user['name']
             result['username'] = this.props.user['username']
             result['quyu'] = this.state.quyu
-            result['cCusName']=this.state.cCusName
-            result['totalprice']=this.state.totalprice
-            result['chae']=this.state.totalprice-(result['price'].trim()?Number(result['price']):0)
-            result['personemail']=this.state.email
-            result['iQuantity']=this.state.iQuantity
-            result['iSum']=this.state.iSum
             if (this.state.type) {
                 let data = await addYinshou(result)
                 if (data.status) {
@@ -127,27 +107,22 @@ class Yinshou extends Component {
                         status: true,
                         quyu: "华南区域",
                         mysql_type: "预收款"
-
                     }, () => {
-                        if(this.state.searchValue) {
+                        if (this.state.searchValue) {
                             this.onSearch(this.state.searchValue)
-                        }else {
+                        } else {
                             this.initData(this.state.page * 10)
                         }
                         message.success(data['message'])
-
-                      
                     })
                 } else {
                     throw new Error("抱歉，请将内容填写完整！")
                 }
-                // 修改记录
             } else {
                 result['id'] = this.state.mysqlId;
                 let data = await alterYinshou(result)
                 if (data['status']) {
                     message.success("恭喜你，修改记录成功！")
-
                     this.setState({
                         visable: false,
                         count: 0,
@@ -155,19 +130,14 @@ class Yinshou extends Component {
                         quyu: "华南区域",
                         mysql_type: "预收款"
                     }, () => {
-                            if(this.state.searchValue) {
+                        if (this.state.searchValue) {
 
-                                this.onSearch(this.state.searchValue)
-                            }else {
-                                this.initData(this.state.page * 10)
-                            }
-                          
-                        
+                            this.onSearch(this.state.searchValue)
+                        } else {
+                            this.initData(this.state.page * 10)
+                        }
                     })
                 }
-
-
-
             }
         }
         catch (err) {
@@ -179,62 +149,48 @@ class Yinshou extends Component {
 
     // 搜索功能
     onSearch = async (content) => {
-            content=content.trim()
-            if(!content){
-                return this.setState({
-                    data:[...this.state.finalData]
-                })
-            }
-            let reduce=[]
-            if(this.state.search==='cCusName'){
-                  reduce=this.state.finalData.reduce((reduce,item)=>{
-                        if(item['cCusName']===content){
-                            reduce.push(item)
-                        }
+        let { value } = this.refSearch.state
+        this.setState({
+            flag: false,
+        })
+        if (content) value = content
+        if (!value) return window.location.reload();
 
-                    return reduce;
-                  },[])  
+        let data = await searchYsk(this.state.search, value)
+        console.log(data)
+        this.setState({
+            data: data['list'],
+            total: data['total'],
+            searchValue: value,
+            flag:true
+        }, () => {
+            console.log(this.state.data)
 
-            }else {
-                reduce=this.state.finalData.reduce((reduce,item)=>{
-                    if(item['cPersonName']===content){
-                        reduce.push(item)
-                    }
-
-                return reduce;
-              },[])  
-            }
-            window.setTimeout(()=>{
-                this.setState({
-                    data:[...reduce]
-                })
-            },300)
-
-
+        })
     }
     // 修改状态
-    onAlterJiean=async(type,id)=>{
-    
-            let result=await alterJiean(type,id)
-            
-            if(result['status']){
-                this.setState({
-                    count:0,
-                },()=>{
-                    if(this.state.searchValue){
-                        // window.location.reload()
-                        this.onSearch(this.state.searchValue)
-                    }else {
-                        this.initData(this.state.page*10)
-                 
-                    }
-                    message.success(`更改成为${!type?'未结案':'结案'}！`)
+    onAlterJiean = async (type, id) => {
+
+        let result = await alterJiean(type, id)
+
+        if (result['status']) {
+            this.setState({
+                count: 0,
+            }, () => {
+                if (this.state.searchValue) {
+                    // window.location.reload()
+                    this.onSearch(this.state.searchValue)
+                } else {
+                    this.initData(this.state.page * 10)
+
                 }
-                )
-            }else {
-                message.error("抱歉，修改状态失败！")
+                message.success(`更改成为${!type ? '未结案' : '结案'}！`)
             }
-     
+            )
+        } else {
+            message.error("抱歉，修改状态失败！")
+        }
+
     }
     render() {
         const expendColumns = [
@@ -248,107 +204,14 @@ class Yinshou extends Component {
                 dataIndex: "riqi",
                 key: "riqi"
             }, {
-                title: "合同金额(元)",
-    
-              
+                title: "收款金额(元)",
+
+                width: "200px",
                 key: "price",
-                render:  (d) => {
-                        const { price} = d;
+                render: (d) => {
+                    const { price } = d;
                     return <span>{price}</span>
-
                 }
-            },{
-                title:"到款金额",
-                
-               
-                key:"totalprice",
-                render:(d)=>{
-                    const {cCusName,number}=d
-                    const {mysql}=this.state.shoukuanData[cCusName]
-                  
-                    let totalPrices=this.state.shoukuanList[cCusName]?this.state.shoukuanList[cCusName]['money']:0
-                    //  let count=0;
-                 
-                    // for(var i=0;i<number;i++){
-                    //     let currentPrice=mysql.length?Number(mysql[i]&&mysql[i]['price']):0
-                    //     count+=currentPrice
-                    // }
-                    // if(number!==mysql.length){
-                    //     prices=mysql.length?Number(mysql[number-1]?mysql[number-1]['price']:0).toFixed(4):0
-                    //     if(Number(totalPrices)<Number(price)){
-                    //         prices=0
-                    //     }
-                        
-                       
-                       
-                    // }else {
-                    //     prices=((Number(totalPrices)-count)+Number(price)).toFixed(4)
-                    //     if(prices<0){
-                    //         prices=0
-                    //     }
-                    // }
-                    let arr=[]
-                    if(mysql.length===1){
-                        console.log(55555);
-                        if(Number(totalPrices)>Number(mysql[0]?mysql[0]['price']:0)){
-                            console.log(8888);
-                            let prices=Number(totalPrices)-Number(mysql[0]?mysql[0]['price']:0)
-                          
-                        return <span>{prices.toFixed(4)}</span>
-                        }else {
-                            return <span>{Number(totalPrices).toFixed(4)}</span>
-                        }
-                    }else{
-
-                    for(let i=0;i<mysql.length;i++){
-                        
-                       let mysql_price=Number(mysql[i]['price'])
-                        if (Number(totalPrices)-mysql_price>=0){
-                            arr.push(mysql_price)
-                            totalPrices=Number(totalPrices)-mysql_price
-                        }
-                        else {
-                            arr.push(totalPrices)
-                            break;
-                        }
- 
-                            
-                        // if(i===0){
-                        //    if( Number(totalPrices)>=Number(mysql[i]?mysql[i]['price']:0)){
-                        //         p=Number(mysql[i]?mysql[i]['price']:0)
-                        //         totalPrices=Number(totalPrices)-Number(mysql[i]?mysql[i]['price']:0)
-                               
-                        //    }else {
-                        //         p=Number(totalPrices)
-                               
-                        //    }
-                        // }else {
-                        //     if(Number(totalPrices)>Number(mysql[i]?mysql[i]['price']:0)){
-                        //         totalPrices=Number(totalPrices)-Number(mysql[i]?mysql[i]['price']:0)
-                        //         p=Number(mysql[i]?mysql[i]['price']:0)
-                        //     }else {
-                        //         p=Number(totalPrices)
-                        //         arr.push(p)
-                        //         break;
-                        //     }
-                          
-                           
-                        // }
-                        // arr.push(p)
-
-                     
-                        
-                    }
-                    if(mysql.length>arr.length){
-                        for(var i=0;i<(mysql.length-arr.length);i++){
-                            arr.push(0.0)
-                        }
-                    }
-                }
-                    return <span>{arr[number-1]?Number(arr[number-1]).toFixed(4):0}</span>
-
-                }
-
             }, {
                 title: "备注",
 
@@ -396,65 +259,72 @@ class Yinshou extends Component {
                     return <div>
 
                         <Button
-                        type="primary"
-                        style={{marginBottom:3}}
-                        onClick={() => {
-                            this.setState({
+                            type="primary"
+                            style={{ marginBottom: 3 }}
+                            onClick={() => {
+                                this.setState({
 
-                                visable: true,
-                                currentId: AutoId,
-                                type: false,
-                                mysqlId: id,
-                                mysql_type: d['type'],
-                                quyu: d['quyu']
-                            }, () => {
-                                this.huixianForm(d);
-                            })
-
-                        }}
-                    >
-                        修改
+                                    visable: true,
+                                    currentId: AutoId,
+                                    type: false,
+                                    mysqlId: id,
+                                    mysql_type: d['type'],
+                                    quyu: d['quyu']
+                                }, () => {
+                                    this.huixianForm(d);
+                                })
+                            }}
+                        >
+                            修改
                     </Button>
-                    <Button type="ghost" onClick={async()=>{
-                        let result= await deleteOrder(id)
-                        if(result['status']){
-                            
-                            this.setState({
-                                count:0,
-                            },()=>{
-                                if(this.state.searchValue){
-                                    this.onSearch(this.state.searchValue)
-                                }else {
-                                    this.initData(this.state.page*10)
-                                }
-                                message.success("恭喜你，删除成功！")
-                            })
-                        }else {
-                            message.err("抱歉，删除失败！")
-                        }
+                        <Button type="ghost" onClick={async () => {
+                            let result = await deleteOrder(id)
+                            if (result['status']) {
+
+                                this.setState({
+                                    count: 0,
+                                }, () => {
+                                    if (this.state.searchValue) {
+                                        this.onSearch(this.state.searchValue)
+                                    } else {
+                                        this.initData(this.state.page * 10)
+                                    }
+                                    message.success("恭喜你，删除成功！")
+                                })
+                            } else {
+                                message.err("抱歉，删除失败！")
+                            }
 
 
-                    }}>删除</Button>
+                        }}>删除</Button>
                     </div>
                 }
             }
         ]
         const { data, total, flag, status, visable, currentId, type, mysql_type, quyu, search } = this.state
         const columns = [
-             {
-                title: "客户(简称)",
-                dataIndex: "cCusAbbName",
-                key: "cCusAbbName"
-            },
             {
-                title:"客户类型",
-                dataIndex:"types",
-                key:"types"
-            },
-        {
+                title: "订单号",
+                dataIndex: "cbdlcode",
+                key: "cbdlcode",
+                fixed: "left"
+            }, {
                 title: "业务员",
                 dataIndex: "cPersonName",
                 key: "cPersonName"
+            }, {
+                title: "客户(简称)",
+                dataIndex: "cCusAbbName",
+                key: "cCusAbbName"
+            }, {
+                title: "制单日期",
+                fixed: "right",
+                key: "dDate",
+                render: ({ dDate }) => {
+                    let d = new Date(dDate)
+
+                    return <span>{d.getFullYear() + '-' + (d.getMonth() + 1) + "-" + d.getDate()}</span>
+                }
             }, {
                 title: "订单数量",
                 dataIndex: "iQuantity",
@@ -465,28 +335,15 @@ class Yinshou extends Component {
                 dataIndex: "iSum",
                 key: "iSum",
                 fixed: "right"
-            },{
-                title:"到款金额",
-                
-                key:"daokuanjine",
-                render:(d)=>{
-                   const {cCusName}=d;
-                   const {shoukuanList}=this.state
-             
-
-                    return <span>{shoukuanList[cCusName]&&shoukuanList[cCusName]['money']}</span>
-
-
-                }
             }, {
                 title: "是否结案",
                 render: ({ mysql }) => {
-               
-                    return (mysql.length && (Number(mysql[mysql.length - 1]['jiean']) === 1 ? <Tag color="red" style={{cursor:"pointer"}} onClick={()=>{
-                        this.onAlterJiean(0,mysql[mysql.length - 1]['id'])
-                    }}> 结案</Tag> : <Tag color="green" style={{cursor:"pointer"}} onClick={()=>{
-                        this.onAlterJiean(1,mysql[mysql.length - 1]['id'])
-                    }}> 未结案</Tag>)) || <Tag color="green" onClick={()=>{
+
+                    return (mysql.length && (Number(mysql[mysql.length - 1]['jiean']) === 1 ? <Tag color="red" style={{ cursor: "pointer" }} onClick={() => {
+                        this.onAlterJiean(0, mysql[mysql.length - 1]['id'])
+                    }}> 结案</Tag> : <Tag color="green" style={{ cursor: "pointer" }} onClick={() => {
+                        this.onAlterJiean(1, mysql[mysql.length - 1]['id'])
+                    }}> 未结案</Tag>)) || <Tag color="green" onClick={() => {
                         message.error("抱歉，无记录条数无法修改！")
                     }} > 未结案</Tag>
                 },
@@ -494,21 +351,10 @@ class Yinshou extends Component {
             }, {
                 title: "操作",
                 render: (d) => {
-                    const {mysql,cCusName,cPersonEmail,iQuantity,iSum}=d
-                    
-                    const {shoukuanList}=this.state
-                    let totalprice=0
-                    if(!mysql.length){
-                        totalprice=shoukuanList[cCusName]?shoukuanList[cCusName]['money']:0
-                    }else {
-        
-                        totalprice=mysql[mysql.length-1]?.chae
 
-                    }
-                    
                     return <div>
                         <Badge
-                            count={mysql.length}
+                            count={d.mysql.length}
                         >
                             <Button type="primary" onClick={() => {
                                 this.setState({
@@ -516,16 +362,11 @@ class Yinshou extends Component {
                                     type: true,
                                     visable: true,
                                     fajianTime: "",
-                                    shoukuanTime: "",
-                                    totalprice,
-                                    cCusName,
-                                    email:cPersonEmail,
-                                    iQuantity,
-                                    iSum
+                                    shoukuanTime: ""
                                 }, () => {
-                                   
+
                                     this.resetForm()
-                                  
+
                                 })
 
                             }} >添加</Button>
@@ -543,12 +384,12 @@ class Yinshou extends Component {
                     <Select defaultValue={search} onChange={(d) => this.setState({
                         search: d
                     })}>
-                          <Option value="cCusName" key="cCusName">客户</Option>
+                        <Option value="cbdlcode" key="cbdlcode">订单号</Option>
                         <Option value="cPersonName" key="cPersonName">业务员</Option>
-                      
+                        <Option value="cCusName" key="cCusName">客户</Option>
 
                     </Select>
-                    <Input.Search ref={node => this.refSearch = node} placeholder={`请输入${search==='cCusName'?'客户名称':'业务员'}进行的筛选`} style={{ width: 400 }} onSearch={this.onSearch}></Input.Search>
+                    <Input.Search ref={node => this.refSearch = node} placeholder={`请输入订单号进行订单的筛选`} style={{ width: 400 }} onSearch={this.onSearch}></Input.Search>
                 </div>
                 <Spin tip="加载中..." size="large" style={{ position: "fixed", top: "50%", left: "50%", zIndex: 99999, display: flag ? 'none' : "block" }}>
                 </Spin>
@@ -559,7 +400,6 @@ class Yinshou extends Component {
 
                     expandable={{
                         expandedRowRender: (data) => {
-
                             return <div>
 
                                 <Table
@@ -569,9 +409,7 @@ class Yinshou extends Component {
 
                                 ></Table>
                             </div>
-
                         }
-
                     }}
                     pagination={{ total, showSizeChanger: false }}
                     onChange={(v) => {
@@ -583,7 +421,6 @@ class Yinshou extends Component {
                     }}
 
                 ></Table>
-
                 <div className="utils">
                     <Drawer
                         title={type ? `添加[${currentId}]的内容` : `修改[${currentId}]的内容`}
@@ -598,10 +435,7 @@ class Yinshou extends Component {
                         <Form
                             ref={node => this.refForm = node}
                             labelCol={{ span: 6 }}
-
                         >
-
-
                             {/* 付款方式 */}
                             <Form.Item
                                 label="付款方式"
@@ -620,12 +454,6 @@ class Yinshou extends Component {
 
                                 </Select>
                             </Form.Item>
-
-
-
-                            {/* 收款记录 */}
-
-
                             {/* 收款日期 */}
                             <Form.Item
                                 label={'收款日期'}
@@ -645,11 +473,9 @@ class Yinshou extends Component {
                                 ></DatePicker>
                                 <label style={{ color: "red", marginLeft: 4, display: type ? 'none' : 'block' }}>无需修改则不录入</label>
                             </Form.Item>
-
-
                             {/* 收款金额*/}
                             <Form.Item
-                                label="合同金额"
+                                label="收款金额"
                                 name="price"
                             >
                                 <Input></Input>
@@ -682,7 +508,7 @@ class Yinshou extends Component {
                                 <Input></Input>
                             </Form.Item>
 
-                                         
+
                             {/* 发件时间*/}
                             <Form.Item
                                 label="到期日期"
@@ -691,11 +517,8 @@ class Yinshou extends Component {
                             >
                                 <DatePicker onChange={(d) => {
                                     if (!d) return;
-
-                                    if (!d) return;
                                     let month = (d.month() + 1) < 10 ? 0 + "" + (d.month() + 1) : (d.month() + 1)
                                     let date = (d.date()) < 10 ? 0 + "" + (d.date()) : (d.date())
-
                                     this.setState({
                                         fajianTime: d.year() + '-' + month + "-" + date
                                     })
@@ -752,4 +575,4 @@ export default connect(state => ({
     user: state.user
 
 
-}))(Yinshou)
+}))(CainaYinshou)

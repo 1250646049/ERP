@@ -230,3 +230,17 @@ export const updateSubsidyProject=(data)=>axios.post("/updateSubsidyProject",dat
 // 添加请假类别
 
 export const insertHY_Department=(data)=>axios.post("/insertHY_Department",data)
+
+// 钉钉付款申请单
+
+export const getAllFukuanData=()=>axios.get("/getAllFukuanData")
+
+// 查询所有工序
+export const selectSalary_Main=(number)=>axios.get("/selectSalary_Main",{params:{number}})
+
+// 查询指定的工序
+export const selectSalary_code=(keycode)=>axios.get("/selectSalary_code",{params:{keycode}})
+
+// 条件筛选指定的内容
+
+export const search_content=(data)=>axios.get("/search_content",{params:data})
