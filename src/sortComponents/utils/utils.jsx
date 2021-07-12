@@ -27,7 +27,7 @@ export default class Utils extends Component{
        
       
         return (
-            <div className="utilss" style={{width:width}}>
+            <div className="utilss" style={{width:width,height:350}}>
                 <div className="content">
                 
                 {data}

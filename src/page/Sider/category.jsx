@@ -102,7 +102,13 @@ export default class Category extends Component {
                             })
 
                         }}>  物流到货发送</Menu.Item>
+                                <Menu.Item key="4" onClick={() => {
+                            PubSub.publish("tiaozhuan", {
+                                path: "/main/wuliuInput",
+                                author: 'wuliuInput'
+                            })
 
+                        }}>  物流到货预测</Menu.Item>
                     </SubMenu>
 
                     {/* 乐迈往来表 */}
@@ -186,17 +192,10 @@ export default class Category extends Component {
                             })
 
                         }}>信息查询</Menu.Item>
-                        <Menu.Item key="baobiao" onClick={() => {
-                            PubSub.publish("tiaozhuan", {
-                                path: "/main/salary_query",
-                                author: 'salary_query'
-                            })
-
-                        }}>人事报表</Menu.Item>
                         <Menu.Item key="yusuan" onClick={() => {
                             PubSub.publish("tiaozhuan", {
-                                path: "/main/salary_query",
-                                author: 'salary_query'
+                                path: "/main/salary_yusuan",
+                                author: 'salary_yusuan'
                             })
 
                         }}>薪资预算</Menu.Item>

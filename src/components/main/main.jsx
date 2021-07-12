@@ -33,10 +33,12 @@ import Yinshou from "../../page/yinshou/yinshou"
 // 导入薪资系统
 import Setting from "../../page/salary/setting"
 import Query from "../../page/salary/query"
-
+// 导入物流收货维护
+import WuliuDaohuoInput from "../../page/wuliu/wuliuinput"
 // 导入试题库
 import Din_Fukuan from "../../page/exam/din_fukuan"
 import Exam from "../../page/exam/exam"
+import Yusuan from '../../page/salary/yusuan';
 const { Header, Content, Footer, Sider } = Layout;
 
 class Main extends Component {
@@ -236,7 +238,7 @@ class Main extends Component {
                             <div className="site-layout-background" style={{ padding: 24 }}>
                                 {/* center */}
 
-                                <Switch>
+                                <Switch> 
 
                                     <Route path="/main/bjprice" component={Bjprice}></Route>
                                     <Route path="/main/wuliudaohuo" component={WuliuDaohuo}></Route>
@@ -249,7 +251,9 @@ class Main extends Component {
                                     <Route path="/main/exam" component={Exam}></Route>
                                     <Route path="/main/sz_salary" component={Setting}></Route>
                                      <Route path="/main/salary_query" component={Query}></Route>   
-                                     <Route path="/main/din_Fukuan" component={Din_Fukuan}></Route>   
+                                     <Route path="/main/din_Fukuan" component={Din_Fukuan}></Route> 
+                                     <Route path="/main/wuliuInput" component={WuliuDaohuoInput}></Route>  
+                                     <Route path="/main/salary_yusuan" component={Yusuan}></Route>
                                     <Redirect to="/main/index"></Redirect>
                                 </Switch>
 

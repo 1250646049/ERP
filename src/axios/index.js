@@ -244,3 +244,29 @@ export const selectSalary_code=(keycode)=>axios.get("/selectSalary_code",{params
 // 条件筛选指定的内容
 
 export const search_content=(data)=>axios.get("/search_content",{params:data})
+
+//查询考勤信息
+export const select_kaoqing=(data)=>axios.get("/select_kaoqing",{params:data})
+
+
+// 查询请假类别
+export const select_qingjia=(data)=>axios.get("/select_qingjia",{params:data})
+
+// 查询工资汇总
+export const select_salary_total=(data)=>axios.get("/select_salary_total",{params:data})
+
+
+// 物流到货临时
+export const selectAllWuliu=()=>axios.get("/selectAllWuliu")
+
+// 查询部门薪资汇总
+export const select_depart_salary=(data)=>axios.get("/select_depart_salary",{params:data})
+
+// 查询问题处理单
+export const select_problem=(data)=>axios.get("/select_problem",{params:data})
+
+// 查询财务考勤表
+export const select_caiwu_kaoqing=(data)=>axios.get("/select_caiwu_kaoqing",{params:data})
+
+// 查询所有订单数据
+export const selectAllOrders=()=>axios.get("/selectAllOrders")
