@@ -102,7 +102,7 @@ export default class Category extends Component {
                             })
 
                         }}>  物流到货发送</Menu.Item>
-                                <Menu.Item key="4" onClick={() => {
+                        <Menu.Item key="4" onClick={() => {
                             PubSub.publish("tiaozhuan", {
                                 path: "/main/wuliuInput",
                                 author: 'wuliuInput'
@@ -157,8 +157,8 @@ export default class Category extends Component {
 
                         }}>SOP试题库</Menu.Item>
                     </SubMenu>
-              {/* 钉钉相关*/}
-                        <SubMenu key="dindin" icon={<RedditOutlined />} title="钉钉辅助">
+                    {/* 钉钉相关*/}
+                    <SubMenu key="dindin" icon={<RedditOutlined />} title="钉钉辅助">
                         <Menu.Item key="din_Fukuan" onClick={() => {
                             PubSub.publish("tiaozhuan", {
                                 path: "/main/din_Fukuan",
@@ -199,6 +199,14 @@ export default class Category extends Component {
                             })
 
                         }}>薪资预算</Menu.Item>
+
+                        <Menu.Item key="kaoqin" onClick={() => {
+                            PubSub.publish("tiaozhuan", {
+                                path: "/main/salary_kaoqin",
+                                author: 'salary_kaoqin'
+                            })
+
+                        }}>录入考勤信息</Menu.Item>
                     </SubMenu>
                 </Menu>
             </div>

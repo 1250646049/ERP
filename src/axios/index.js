@@ -270,3 +270,11 @@ export const select_caiwu_kaoqing=(data)=>axios.get("/select_caiwu_kaoqing",{par
 
 // 查询所有订单数据
 export const selectAllOrders=()=>axios.get("/selectAllOrders")
+
+// 查询车间预算
+
+export const selectYusuan=()=>axios.get("/selectYusuan")
+
+// 插入一条薪资预算
+// ordercode,code,yn
+export const insertYusuan=(ordercode,code,yn)=>axios.post("/insertYusuan",{ordercode,code,yn})

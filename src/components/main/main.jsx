@@ -39,6 +39,7 @@ import WuliuDaohuoInput from "../../page/wuliu/wuliuinput"
 import Din_Fukuan from "../../page/exam/din_fukuan"
 import Exam from "../../page/exam/exam"
 import Yusuan from '../../page/salary/yusuan';
+import Kaoqin from '../../page/salary/kaoqin';
 const { Header, Content, Footer, Sider } = Layout;
 
 class Main extends Component {
@@ -254,6 +255,7 @@ class Main extends Component {
                                      <Route path="/main/din_Fukuan" component={Din_Fukuan}></Route> 
                                      <Route path="/main/wuliuInput" component={WuliuDaohuoInput}></Route>  
                                      <Route path="/main/salary_yusuan" component={Yusuan}></Route>
+                                     <Route path="/main/salary_kaoqin" component={Kaoqin}></Route>
                                     <Redirect to="/main/index"></Redirect>
                                 </Switch>
 
