@@ -1,8 +1,11 @@
 import moment from "moment"
+import PubSub from "pubsub-js"
 import { Button, Card, Divider, Input, Modal, Radio, Steps, Form, DatePicker, Select, message } from "antd"
 import FormItem from "antd/lib/form/FormItem"
 import React, { Component } from "react"
 import { selectAllNews } from "../../axios/index"
+import Gsgj from "./gxgj"
+import Glgy from "./glyg"
 const { Step } = Steps
 const { Option } = Select
 export default class Kaoqin extends Component {
@@ -10,18 +13,21 @@ export default class Kaoqin extends Component {
     state = {
         bm: "yibu",
         visible: false,
-        current: 0,
+        current: 2,
         jijian: "1", //计件方式 1集体 2个人,
         classs: "baiban", //白班/晚班,
         work: [], //车间
-        team: [], //班组
+        team: [], //班组 
         finalTeam: [],
         teamContent: "",
         teamNumber: 0,
+        process:[],
         date: `${new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + (new Date().getDate())}`,  //日期
         txdate: "", //调休日期
         addType: false,
-        dateValue: new moment(`${new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + (new Date().getDate())}`, 'YYYY-MM-DD')
+        dateValue: new moment(`${new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + (new Date().getDate())}`, 'YYYY-MM-DD'),
+        finalprocess:[],
+       
 
     }
     componentDidMount() {
@@ -40,7 +46,8 @@ export default class Kaoqin extends Component {
 
         console.log(work);
         this.setState({
-            work, finalTeam: result['data']['team']
+            work, finalTeam: result['data']['team'],process:result['data']['process'],
+            finalprocess:result['data']['process']
 
         })
 
@@ -301,7 +308,7 @@ export default class Kaoqin extends Component {
                 {/* 维护工序信息 */}
                 <div className="steps-content" style={{ marginTop: 10, display: current === 1 ? '' : 'none' }}>
                     <Card bordered={true} >
-
+                        <Gsgj process={this.state.process} bm={this.state.bm}/>
                     </Card>
                     <Button style={{ marginTop: 15, color: "white", background: "red" }} className="next" type="primary" onClick={() => {
 
@@ -310,16 +317,21 @@ export default class Kaoqin extends Component {
                         })
                     }}>回退 上一步</Button>
                     <Button style={{ marginTop: 15, marginLeft: 15 }} className="next" type="primary" onClick={() => {
-
+                        let obj=window.localStorage.getItem("_item_")
+                        if(!obj || obj==='{}'){
+                            return message.error("抱歉，请维护工序记录！")
+                        }
+                        PubSub.publish("loadProcess")
                         this.setState({
                             current: 2
                         })
+                         
                     }}>保存 下一步</Button>
                 </div>
                 {/* 维护工序信息 */}
                 <div className="steps-content" style={{ marginTop: 10, display: current === 2 ? '' : 'none' }}>
                     <Card bordered={true} >
-
+                    <Glgy/>
                     </Card>
                     <Button style={{ marginTop: 15, color: "white", background: "red" }} className="next" type="primary" onClick={() => {
 
