@@ -166,7 +166,7 @@ export default class Gxgj extends Component {
 
                                 return (
                                     <Col span={2} key={item}  >
-                                        <Input value={obj[item]?.['cj']} disabled={true}></Input>
+                                        <Input value={obj[item]?.['Name']} disabled={true}></Input>
 
                                     </Col>
                                 )

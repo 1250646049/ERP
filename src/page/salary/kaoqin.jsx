@@ -27,6 +27,7 @@ export default class Kaoqin extends Component {
         addType: false,
         dateValue: new moment(`${new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + (new Date().getDate())}`, 'YYYY-MM-DD'),
         finalprocess:[],
+        result:{}
        
 
     }
@@ -44,17 +45,17 @@ export default class Kaoqin extends Component {
             work = result['data']['work'].filter((item) => item['bm'] === '二部')
         }
 
-        console.log(work);
         this.setState({
             work, finalTeam: result['data']['team'],process:result['data']['process'],
-            finalprocess:result['data']['process']
+            finalprocess:result['data']['process'],
+            result
 
         })
 
 
     }
     render() {
-        const { bm, visible, current, jijian, classs, work, team, teamContent, addType, dateValue } = this.state
+        const { bm, visible, current, jijian, classs, work, team, teamContent, addType, dateValue,result } = this.state
         return (
             <div className="kaoqin">
                 <div className="utils">
@@ -148,7 +149,7 @@ export default class Kaoqin extends Component {
                                         style={{ marginLeft: 15 }}
                                     >
                                         <Select placeholder="请下拉选择车间名称！" onSelect={(v) => {
-                                            let team = this.state.finalTeam.filter((item) => item['WorkshopCode'][0] === v)
+                                            let team = this.state.finalTeam.filter((item) => item['WorkshopName'] === v)
                                             this.setState(
                                                 {
                                                     team
@@ -158,7 +159,7 @@ export default class Kaoqin extends Component {
                                         }}>
                                             {work?.map((item, index) => {
 
-                                                return (<Option key={index} value={item['WorkshopCode']}>{item['WorkshopName']}</Option>)
+                                                return (<Option key={index} value={item['WorkshopName']}>{item['WorkshopName']}</Option>)
                                             })}
                                         </Select>
                                     </FormItem>
@@ -293,9 +294,20 @@ export default class Kaoqin extends Component {
 
                     <Button style={{ marginTop: 15 }} className="next" type="primary" onClick={async() => {
                         try{
-                            await this.FormRef.validateFields()
+                           let result= await this.FormRef.validateFields()
+                           result['date']=this.state.date
+                           result['txdate']=this.state.txdate
+                           result['teamName']=this.state.teamContent
+                           result['bm']=this.state.bm
+                           result['classs']=this.state.classs
+                          
                             this.setState({
                                 current: 1
+                            },()=>{
+                              
+                           
+                              window.localStorage.setItem("_kq_",JSON.stringify(result))
+                              
                             })
                         }catch{
                             message.error("请先完善输入框内容后执行下一步操作！",3)
@@ -321,6 +333,16 @@ export default class Kaoqin extends Component {
                         if(!obj || obj==='{}'){
                             return message.error("抱歉，请维护工序记录！")
                         }
+                        let arr=Object.values(JSON.parse(obj))
+                        console.log(arr);
+                        for (const item of arr){
+                           
+                            if(!item['cl']){
+                                return message.error(`请输入 [${item['Name']}] 工序的产量！`)
+                            }
+
+                        }
+
                         PubSub.publish("loadProcess")
                         this.setState({
                             current: 2
@@ -328,10 +350,10 @@ export default class Kaoqin extends Component {
                          
                     }}>保存 下一步</Button>
                 </div>
-                {/* 维护工序信息 */}
+                {/* 维护员工信息 */}
                 <div className="steps-content" style={{ marginTop: 10, display: current === 2 ? '' : 'none' }}>
                     <Card bordered={true} >
-                    <Glgy/>
+                    <Glgy result={result}/>
                     </Card>
                     <Button style={{ marginTop: 15, color: "white", background: "red" }} className="next" type="primary" onClick={() => {
 
