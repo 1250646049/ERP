@@ -361,7 +361,7 @@ export default class Kaoqin extends Component {
                             current: 1
                         })
                     }}>回退 上一步</Button>
-                    <Button style={{ marginTop: 15, marginLeft: 15 }} className="next" type="primary">保存 提交数据</Button>
+               
                 </div>
             </div>
         )

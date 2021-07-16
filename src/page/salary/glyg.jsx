@@ -9,7 +9,7 @@ export default class Glyg extends Component {
         person: [],
         personObj: {},
         num: [1],
-        result:{}
+        result: {}
     }
 
 
@@ -39,25 +39,25 @@ export default class Glyg extends Component {
 
     }
     // 设置result
-    static getDerivedStateFromProps(props){
-        const {result}=props
+    static getDerivedStateFromProps(props) {
+        const { result } = props
         return {
             result
         }
     }
     initContains = () => {
-        let arr = ['工号', '姓名', '出勤情况', '计时项目1', '计时小时数1', '计时薪资1', '计时项目2','计时小时数2','计时薪资2',
-        '计时项目3','计时小时数3','计时薪资3'
-            ,  '计件平均工资', '计时薪资', '计件薪资', '补贴薪资', '当日薪资',
-            '倍数', '是否请假', '其他倍数', '部门','补贴项目1','补贴金额1','补贴项目2','补贴金额2','补贴项目3'
+        let arr = ['工号', '姓名', '出勤情况', '计时项目1', '计时小时数1', '计时薪资1', '计时项目2', '计时小时数2', '计时薪资2',
+            '计时项目3', '计时小时数3', '计时薪资3'
+            , '计件平均工资', '计时薪资', '计件薪资', '补贴薪资', '当日薪资',
+            '倍数', '是否请假', '其他倍数', '部门', '补贴项目1', '补贴金额1', '补贴项目2', '补贴金额2', '补贴项目3'
         ]
 
         let obj = JSON.parse(window.localStorage.getItem("_item_"))
 
         for (const item in obj) {
-            arr.push(obj[item]['Code']+"|")
+            arr.push(obj[item]['Code'] + "|")
             arr.push(obj[item]['Code'] + "|平均工资|")
-            arr.push('计件薪资'+item)
+            arr.push('计件薪资' + item)
         }
         arr.push("操作")
         this.setState({
@@ -66,7 +66,7 @@ export default class Glyg extends Component {
 
     }
     render() {
-        const { label, person, num,result } = this.state
+        const { label, person, num, result } = this.state
         return (
             <div className="glyg">
                 <div className="utils">
@@ -78,25 +78,29 @@ export default class Glyg extends Component {
                         })
                     }}>添加一个员工</Button>
 
-                    <Button style={{color:"white",background:"red",marginLeft:10}} type="primary" onClick={() => {
+                    <Button style={{ color: "white", background: "red", marginLeft: 10 }} type="primary" onClick={() => {
                         let arr = this.state.num
-                        if(arr.length===1){
+                        if (arr.length === 1) {
                             return message.error("必须保留一个员工工位！")
                         }
                         arr.pop()
                         this.setState({
-                            num: arr 
+                            num: arr
                         })
                     }}>减少一个员工</Button>
+
+
                 </div>
-                <div className="person">
+                <div className="person" style={{overflow:"scroll",width:"100%",height:"70vh"}}>
 
                     <Row>
 
                         {num.map((_, index) => {
 
                             return (
-                                <Person label={label} person={person} key={index} index={index} result={result}/>
+                               <div  key={index}>
+                                    <Person label={label} person={person} index={index} result={result} ref={"personRef" + index} />
+                               </div>
                             )
                         })}
 
@@ -105,6 +109,15 @@ export default class Glyg extends Component {
 
                 </div>
 
+                <Button onClick={async (v) => {
+                    // console.log(this.personRef.testContet());
+                    let values = Object.values(this.refs)
+                    for (const item of values) {
+                        try { await item.FormRef.validateFields() }
+                        catch { }
+
+                    }
+                }} style={{ marginTop: 15, marginLeft: 15 }} className="next" type="primary">保存 提交数据</Button>
             </div>
         )
 

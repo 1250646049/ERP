@@ -1,12 +1,13 @@
 import React, { Component } from "react"
-import { Row, Col, Tag, Divider, Input, message, Select, Badge, Button } from "antd"
+import { Row, Col, Divider, Input, message, Select, Badge } from "antd"
 import Checkbox from "antd/lib/checkbox/Checkbox"
 import Form from "antd/lib/form/Form"
 import FormItem from "antd/lib/form/FormItem"
-
+import PubSub from "pubsub-js"
+import "./css/person.css"
 const { Option } = Select
 export default class Person extends Component {
-    
+
     state = {
         label: [],
         process: {},
@@ -16,7 +17,13 @@ export default class Person extends Component {
         result: {},
         project: [],
         subsidyProject: [],
-        formData:{}
+        formData: {},
+        HY_Department: [], //请假类别,
+        is_qjia: false, //是否请假
+        otherbs_show: false,
+        ProjectName: "",//计时项目1
+        ProjectName2: "", //计时项目2
+        ProjectName3: "" //计时项目3
 
     }
 
@@ -24,9 +31,6 @@ export default class Person extends Component {
 
         this.initContains()
         this.initData()
-       window.setTimeout(()=>{
-        this.initForm()
-       },1000)
     }
 
 
@@ -37,34 +41,43 @@ export default class Person extends Component {
                 process: JSON.parse(window.localStorage.getItem("_item_"))
             }, () => {
                 // 初始化form表单是部分数据
-               
-
-
+                this.initForm()
             })
         }
 
     }
     // 加载数据
     initData = () => {
-
+        PubSub.subscribe("loadProcess", (_) => {
+            this.initForm()
+        })
 
 
     }
-
+    
     static getDerivedStateFromProps(props) {
 
         const { label, person, index, result } = props
         // 获取考勤信息
-        let kq = JSON.parse(window.localStorage.getItem("_kq_"))
+        let kq = window.localStorage.getItem("_kq_") && JSON.parse(window.localStorage.getItem("_kq_"))
+        if (!kq) {
+            return null;
+        }
         const { bm } = kq
         let projectArr = []
         let subsidyProjectArr = []
+        let HY_Department = []
+
         if (bm === 'yibu') {
             projectArr = result['data']?.project.filter((item) => {
 
                 return item['bm'] === '一部'
             })
             subsidyProjectArr = result['data']?.subsidyProject.filter((item) => {
+
+                return item['bm'] === '一部'
+            })
+            HY_Department = result['data']?.HY_Department.filter((item) => {
 
                 return item['bm'] === '一部'
             })
@@ -77,6 +90,10 @@ export default class Person extends Component {
 
                 return item['bm'] === '一部'
             })
+            HY_Department = result['data']?.HY_Department.filter((item) => {
+
+                return item['bm'] === '一部'
+            })
         }
 
         return {
@@ -85,7 +102,8 @@ export default class Person extends Component {
             key: index,
             kq,
             project: projectArr,
-            subsidyProject: subsidyProjectArr
+            subsidyProject: subsidyProjectArr,
+            HY_Department
         }
     }
 
@@ -100,361 +118,605 @@ export default class Person extends Component {
 
         // try{
         let obj = this.state.person.find((item) => Number(item['PersonCode']) === Number(value.trim()))
-
         this.setState({
             personObj: obj
-        }, () => {
+        }, async () => {
 
         })
-        //    本地缓存
-
-        // }catch{
-        //     message.error("抱歉，员工工号只能是数字！")
-        // }
 
     }
+    // 设置计时项目规则
+    setJsItem = (e, type, state) => {
+        // 判断是否大于出勤时间
+        let AttendanceRecord = this.FormRef.getFieldValue("AttendanceRecord")
+        AttendanceRecord = Number(AttendanceRecord)
 
+        const { value } = e.target
+        let content = Number(value)
+        let process = 0
 
-    // 设置本地缓存
-    setLocalStorage = (value, content) => {
-        let user = window.localStorage.getItem("_user_")
-        let userArr = []
-        if (!user) {
-            let obj = {
+        if (content) {
+            process = this.state.project.find((item) => item["ProjectName"] === this.state[state])
+
+            if (!AttendanceRecord || AttendanceRecord < content) {
+                message.error("计划时间不能大于出勤时间！")
+                return e.target.value = 0
             }
-            obj[value] = content
-            userArr.push(obj)
-        } else {
-            userArr = JSON.parse(user)
-            let obj = userArr.find((item) => item[value] === value)
-            if (!obj) {
-                let obj = {
-                }
-                obj[value] = content
-                userArr.push(obj)
+        }
+
+        this.FormRef.setFieldsValue({
+            [type]: process ? process['Money'] * content : 0
+        })
+        this.setJsSalary()
+    }
+
+    // 设置计时薪资
+    setJsSalary = () => {
+        let HourlyWage = 0
+        for (let i = 0; i < 3; i++) {
+            let content = 0
+            if (i === 0) {
+                content = this.FormRef.getFieldValue(`HourlyWage`)
             } else {
-                userArr = userArr.filter((item) => item[value] !== value)
-                obj[value] = content
-                userArr.push(obj)
+                content = this.FormRef.getFieldValue(`HourlyWage${i + 1}`)
             }
+
+            if (!content) {
+                content = 0
+            }
+            HourlyWage += content
 
         }
-        userArr = JSON.stringify(userArr)
-        window.localStorage.setItem("_user_", userArr)
-    }
+        // 乘以 倍数
+        let bs=1.0
+        let bs_input=this.FormRef.getFieldValue("bs")
 
+        if(Number(bs_input)){
+            bs=Number(bs_input)
+        }
+        this.FormRef.setFieldsValue({
+            jsxj: HourlyWage*bs
+        })
+        this.setDayWage()
+    }
+    // 设置当日金额
+    setDayWage = () => {
+        let jsxj = this.FormRef.getFieldValue("jsxj") ? this.FormRef.getFieldValue("jsxj") : 0
+        let jjxz = this.FormRef.getFieldValue("jjxz") ? this.FormRef.getFieldValue("jjxz") : 0
+        let btxz = this.FormRef.getFieldValue("btxz") ? this.FormRef.getFieldValue("btxz") : 0
+
+        this.FormRef.setFieldsValue({
+            daywage: (jsxj + jjxz + btxz)
+        })
+
+
+    }
+    // 设置倍数
+    setBs=(e)=>{
+    const {value}=e.target
+    let content=Number(value)
+    let bs=1.0
+    if(content ){
+        if(content>8.0){
+            bs=((content- 8.0) * 1.5 + 8.0)/content
+        }
+    }    
+    // 
+  // 计件乘以 倍数
+
+            let bs_input=this.FormRef.getFieldValue("jjxz")
+            let jj=Number(bs_input)
+
+    this.FormRef.setFieldsValue({
+        bs,
+        jjxz:jj*bs
+
+    })
+    this.setJsSalary()
+
+
+    }
+    // 下拉选择设置计时项目规则
+
+    selectJsItem = (type, contentType, state) => {
+        let value = this.FormRef.getFieldValue(type)
+        let content = Number(value)
+        let process = 0
+        if (Boolean(content)) {
+            process = this.state.project.find((item) => item["ProjectName"] === this.state[state])
+
+        }
+        this.FormRef.setFieldsValue({
+            [contentType]: process ? process['Money'] * content : 0
+        })
+        this.setJsSalary()
+    }
     // 回显数据
     initForm = () => {
-        let arr = Object.values(this.state.process)
-        let formData={
-            AttendanceRecord:10
-         }
-        for(var i=0;i<arr.length;i++){
-            let item=arr[i]
-            let price=Number(item['cl'])*Number(item['UnitPrice'])
-            formData[`PieceworkWage${i+1}`]=price
-        }
-        console.log(formData);
-        this.setState({
-            formData
-        })
+        let values = Object.values(this.state.process)
+        // 计时薪资
+        let jsxj = 0
+        // 计件薪资
+        let jjxz = 0
+        // 补贴薪资
 
- 
+        let btxz = 0
+        // 当日薪资
+
+        let reduce = values.reduce((reduce, item, index) => {
+            let cl = item['cl']
+            let price = item['UnitPrice']
+            reduce[`PieceworkWage${index + 1}`] = 0
+            try {
+                reduce[`PieceworkWage${index + 1}`] = Number(cl) + Number(price)
+                jjxz += (Number(cl) + Number(price))
+            } catch { }
+            return reduce;
+        }, {})
+
+
+
+        this.FormRef?.setFieldsValue({
+            ...reduce, jsxj, jjxz, btxz, daywage: jjxz,bs:1.0
+        })
 
 
 
     }
+    // 监听下一步更新数据
 
+
+    testContet = () => {
+
+        return this.state.key
+    }
 
     render() {
-        const { label, personObj, key, project, subsidyProject,formData } = this.state
+        const { personObj, key, project, subsidyProject, process, HY_Department, is_qjia, otherbs_show, ProjectName } = this.state
 
 
         return (
-            <div>
-                <Row>
-                    <Col offset={23}>
+            <div className="persons" style={{ width: "100%" }}>
 
-                        <Badge count={key + 1}>
+                <Col style={{ width: 40 }}>
 
-                        </Badge>
-                    </Col>
-                </Row>
+
+                </Col>
+
                 <Row >
 
-                    {label.map((item, index) => {
-                        return (
+                    <div >
 
-                            <Col span={4} key={index} >
-                                <Form style={{ display: "flex", margin: "8px 0" }} ref={node=>this.FormRef=node} >
-                                    <Tag color="green" style={{ margin: "5px 5px", height: 22 }}>{item.replaceAll("|", "") + ":"}</Tag>
-                                    {(item === '工号') &&
-                                        <FormItem>
-                                            <Input onInput={(e) => {
-                                                this.onInputPerson(e, 'PersonCode', index)
-                                            }}></Input>
-                                        </FormItem>
+                        <Form ref={node => this.FormRef = node} style={{ display: "flex" }} >
+                            <Badge count={key + 1} style={{ verticalAlign: "middle",marginTop:10 }}>
+
+                            </Badge>
+                            <FormItem
+                                name="userCode"
+                                label="工号"
+                                rules={
+                                    [
+                                        { required: true, message: "工号不能为空！", trigger: "blur" }
+                                    ]
+                                }
+                            >
+                                <Input onInput={(e) => {
+                                    this.onInputPerson(e, 'PersonCode')
+                                }}></Input>
+                            </FormItem>
+
+                            <FormItem
+                                name="PersonName"
+                                label="用户姓名"
+
+                            >
+                                <Input disabled={true} placeholder={personObj?.PersonName}></Input>
+                            </FormItem>
+
+                            <FormItem
+                                label='出勤情况'
+                                name="AttendanceRecord"
+                                rules={
+                                    [
+                                        { required: true, message: "出勤情况不能为空！", trigger: "blur" }
+                                    ]
+                                }
+                            >
+                                <Input onInput={e=>{
+                                    this.setBs(e)
+                                }}></Input>
+                            </FormItem>
+
+                            <FormItem
+                                label="部门"
+                                name="cdutycode"
+                            >
+                                <Input disabled={true} placeholder={personObj?.cdutycode}></Input>
+                            </FormItem>
+                            <FormItem
+                                name="ProjectName"
+                                label="计时项目1"
+                            >
+                                <Select
+                                    placeholder="计时项目1"
+                                    defaultValue={ProjectName}
+                                    onSelect={v => {
+                                        this.setState({
+                                            ProjectName: v
+                                        }, () => {
+                                            this.selectJsItem("Hours", 'HourlyWage', 'ProjectName')
+                                        })
+                                    }}
+                                >
+                                    <Option value=""></Option>
+                                    {project?.map((item, index) => {
+
+                                        return (
+
+                                            <Option key={index} value={item['ProjectName']}>{item['ProjectName']}</Option>
+                                        )
+                                    })}
+
+                                </Select>
+                            </FormItem>
+
+                            <FormItem
+                                name="Hours"
+                                label="计时小时数1"
+                            >
+                                <Input onInput={e => {
+                                    this.setJsItem(e, 'HourlyWage', 'ProjectName')
+                                }} />
+                            </FormItem>
+
+
+                            <FormItem
+                                name="HourlyWage"
+                                label="计时薪资1"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+
+
+                            <FormItem name="ProjectName2"
+                                label="计时项目2"
+                            >
+                                <Select
+                                    placeholder="请选择计时项目2"
+                                    defaultValue={this.state.ProjectName2}
+                                    onSelect={(v) => {
+                                        this.setState({
+                                            ProjectName2: v
+                                        }, () => {
+                                            this.selectJsItem("Hours2", 'HourlyWage2', 'ProjectName2')
+                                        })
+                                    }}
+                                >
+                                    <Option value=""></Option>
+                                    {project?.map((item, index) => {
+                                        return (
+                                            <Option key={index} value={item['ProjectName']}>{item['ProjectName']}</Option>
+                                        )
+                                    })}
+                                </Select>
+                            </FormItem>
+
+
+                            <FormItem
+                                name="Hours2"
+                                label="计时小时数2"
+                            >
+                                <Input onInput={e => {
+                                    this.setJsItem(e, 'HourlyWage2', 'ProjectName2')
+                                }} />
+                            </FormItem>
+
+
+                            <FormItem
+                                name="HourlyWage2"
+                                label="计时薪资2"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem name="ProjectName3"
+                                label="计时项目3"
+                            >
+                                <Select
+                                    placeholder="请选择计时项目3"
+                                    onSelect={(v) => {
+                                        this.setState({
+                                            ProjectName3: v
+                                        }, () => {
+                                            this.selectJsItem("Hours3", 'HourlyWage3', 'ProjectName3')
+                                        })
+                                    }}
+                                >
+                                    <Option value=""></Option>
+                                    {project?.map((item, index) => {
+                                        return (
+                                            <Option key={index} value={item['ProjectName']}>{item['ProjectName']}</Option>
+                                        )
+                                    })}
+                                </Select>
+                            </FormItem>
+
+
+                            <FormItem
+                                name="Hours3"
+
+                                label="计时小时数3"
+                                onInput={e => {
+                                    this.setJsItem(e, 'HourlyWage3', 'ProjectName3')
+                                }}
+                            >
+                                <Input />
+                            </FormItem>
+
+
+                            <FormItem
+                                name="HourlyWage3"
+                                label="计时薪资3"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+
+                            <FormItem
+                                label="平均工资"
+                            >
+                                <Select
+                                    style={{ width: 151 }}
+                                    placeholder="选择平均工资"
+                                >
+                                    <Option value="计件工人的平均工资">计件工人的平均工资</Option>
+                                    <Option value="次生产线的平均工资">次生产线的平均工资</Option>
+                                </Select>
+                            </FormItem>
+
+                            <FormItem
+                                name="jsxj"
+                                label="计时薪资"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+
+                            <FormItem
+                                name="jjxz"
+                                label="计件薪资"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="btxz"
+                                label="补贴薪资"
+
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="daywage"
+                                label="当日薪资"
+
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="bs"
+                                label="倍数"
+                            >
+                                <Input />
+                            </FormItem>
+                            <FormItem
+                                name="qtbs"
+                                label="其他倍数"
+                            >
+                                <Input onInput={(e) => {
+                                    const { value } = e.target
+                                    let bs = Number(value)
+                                    let flag = false
+                                    if (Boolean(bs)) {
+                                        flag = true
                                     }
-                                    {(item === '姓名') && <Input disabled={true} placeholder={personObj?.PersonName}></Input>}
-                                    {(item === '出勤情况') &&
-                                        <FormItem
-                                            name="AttendanceRecord"
-                                            initialValue={formData?.AttendanceRecord}
-                                        >
-                                            <Input ></Input>
-                                        </FormItem>
-                                    }
-                                    {(item === '部门') && <Input disabled={true} placeholder={personObj?.cdutycode}></Input>}
+                                    this.setState({
+                                        otherbs_show: flag
+                                    })
+                                }}></Input>
+                            </FormItem>
 
-                                    {(item === '计时项目1') && <FormItem
-                                        name="ProjectName"
-                                    >
-                                        <Select
-                                            placeholder="请选择计时项目1"
-                                        >
-                                            {project.map((item, index) => {
 
-                                                return (
-                                                    <Option key={index} value={item['ProjectName']}>{item['ProjectName']}</Option>
-                                                )
-                                            })}
+                            <FormItem
+                                name="SubsidyProject"
+                                label="补贴项目1"
+                            >
+                                <Select
+                                    placeholder="选择补贴项目1"
+                                >
+                                    {subsidyProject?.map((item, index) => {
+                                        return (
+                                            <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
+                                        )
+                                    })}
 
-                                        </Select>
-                                    </FormItem>}
-                                    {(item === '计时小时数1' &&
-                                        <FormItem
-                                            name="Hours"
-                                        >
-                                            <Input></Input>
-                                        </FormItem>
-                                    )}
-                                    {(item === '计时薪资1' &&
-                                        <FormItem
-                                            name="HourlyWage"
-                                        >
-                                            <Input></Input>
-                                        </FormItem>
-                                    )}
-                                    {(item === '计时项目2') &&
-                                        <FormItem name="ProjectName2">
-                                            <Select
-                                                placeholder="请选择计时项目2"
-                                            >
-                                                {project.map((item, index) => {
-                                                    return (
-                                                        <Option key={index} value={item['ProjectName']}>{item['ProjectName']}</Option>
-                                                    )
-                                                })}
-                                            </Select>
-                                        </FormItem>
-                                    }
-                                    {(item === '计时小时数2' &&
-                                        <FormItem
-                                            name="Hours2"
-                                        >
-                                            <Input></Input>
-                                        </FormItem>
-                                    )}
-                                    {(item === '计时薪资2' &&
-                                        <FormItem
-                                            name="HourlyWage2"
-                                        >
-                                            <Input></Input>
-                                        </FormItem>
-                                    )}
-                                    {(item === '计时项目3') &&
-                                        <FormItem name="ProjectName3">
-                                            <Select
-                                                placeholder="请选择计时项目2"
-                                            >
-                                                {project.map((item, index) => {
-                                                    return (
-                                                        <Option key={index} value={item['ProjectName']}>{item['ProjectName']}</Option>
-                                                    )
-                                                })}
-                                            </Select>
-                                        </FormItem>
-                                    }
-                                    {(item === '计时小时数3' &&
-                                        <FormItem
-                                            name="Hours3"
-                                        >
-                                            <Input></Input>
-                                        </FormItem>
-                                    )}
-                                    {(item === '计时薪资3' &&
-                                        <FormItem
-                                            name="HourlyWage3"
-                                        >
-                                            <Input></Input>
-                                        </FormItem>
-                                    )}
+                                </Select>
+                            </FormItem>
 
-                                    {(item === '计件平均工资') && <Select
 
-                                        placeholder="选择平均工资"
-                                    >
-                                        <Option value="计件工人的平均工资">计件工人的平均工资</Option>
-                                        <Option value="次生产线的平均工资">次生产线的平均工资</Option>
-                                    </Select>}
-                                    {(item === '计时薪资') &&
-                                        <FormItem
-                                            name="jsxj"
-                                        >
-                                            <Input></Input>
-                                        </FormItem>
-                                    }
-                                    {(item === '计件薪资') && <FormItem
-                                        name="jjxz"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '补贴薪资') && <FormItem
-                                        name="btxz"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '当日薪资') && <FormItem
-                                        name="daywage"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '倍数') && <FormItem
-                                        name="bs"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '其他倍数') && <FormItem
-                                        name="qtbs"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '是否请假') && <Checkbox style={{ marginTop: 5 }}></Checkbox>}
-                                    {/* 工序 */}
-                                    {(item.split("|")?.length === 2) && <Checkbox checked={true} style={{ marginTop: 5 }}></Checkbox>}
-                                    {/* 工序平均工资 */}
-                                    {(item.split("|")?.length === 3) && <Checkbox style={{ marginTop: 5 }}></Checkbox>}
-                                    {(item === '补贴项目1') &&
-                                        <FormItem
-                                            name="SubsidyProject"
-                                        >
-                                            <Select
-                                                placeholder="选择补贴项目1"
-                                            >
-                                                {subsidyProject?.map((item, index) => {
-                                                    return (
-                                                        <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
-                                                    )
-                                                })}
+                            <FormItem name="Subsidy"
+                                label="补贴金额"
+                            >
+                                <Input />
+                            </FormItem>
 
-                                            </Select>
-                                        </FormItem>
-                                    }
-                                    {(item === '补贴金额1') &&
-                                        <FormItem name="Subsidy">
-                                            <Input></Input>
-                                        </FormItem>
-                                    }
-                                    {(item === '补贴项目2') && <FormItem
-                                        name="SubsidyProject2"
-                                    >
-                                        <Select
-                                            placeholder="选择补贴项目2"
-                                        >
-                                            {subsidyProject?.map((item, index) => {
-                                                return (
-                                                    <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
-                                                )
-                                            })}
+                            <FormItem
+                                name="SubsidyProject2"
+                                label="补贴项目2"
+                            >
+                                <Select
+                                    placeholder="选择补贴项目2"
+                                >
+                                    {subsidyProject?.map((item, index) => {
+                                        return (
+                                            <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
+                                        )
+                                    })}
 
-                                        </Select>
-                                    </FormItem>}
-                                    {(item === '补贴金额2') && <FormItem
-                                        name="Subsidy2"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '补贴项目3') && <FormItem
-                                        name="SubsidyProject3"
-                                    >
-                                        <Select
-                                            placeholder="选择补贴项目3"
-                                        >
-                                            {subsidyProject?.map((item, index) => {
-                                                return (
-                                                    <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
-                                                )
-                                            })}
+                                </Select>
+                            </FormItem>
+                            <FormItem
+                                name="Subsidy2"
+                                label="补贴金额2"
+                            >
+                                <Input />
+                            </FormItem>
+                            <FormItem
+                                name="SubsidyProject3"
+                                label="补贴项目3"
+                            >
+                                <Select
+                                    placeholder="选择补贴项目3"
+                                >
+                                    {subsidyProject?.map((item, index) => {
+                                        return (
+                                            <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
+                                        )
+                                    })}
 
-                                        </Select>
-                                    </FormItem>}
-                                    {(item === '补贴金额3') && <FormItem
-                                        name="Subsidy3"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资1') && <FormItem
-                                        name="PieceworkWage1"
-                                    
-                                    >
-                                        <Input placeholder={FormData?.PieceworkWage1}></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资2') && <FormItem
-                                        name="PieceworkWage2"
-                                        initialValue={FormData?.PieceworkWage2}
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资3') && <FormItem
-                                        name="PieceworkWage3"
-                                        initialValue={FormData?.PieceworkWage3}
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资4') && <FormItem
-                                        name="PieceworkWage4"
-                                        initialValue={FormData?.PieceworkWage4}
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资5') && <FormItem
-                                        name="PieceworkWage5"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资6') && <FormItem
-                                        name="PieceworkWage6"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资7') && <FormItem
-                                        name="PieceworkWage7"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资8') && <FormItem
-                                        name="PieceworkWage8"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资9') && <FormItem
-                                        name="PieceworkWage8"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                    {(item === '计件薪资10') && <FormItem
-                                        name="PieceworkWage8"
-                                    >
-                                        <Input></Input>
-                                    </FormItem>}
-                                        
-                                </Form>
-                            </Col>
+                                </Select>
+                            </FormItem>
+                            <FormItem
+                                name="Subsidy3"
+                                label="补贴金额3"
+                            >
+                                <Input />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage1"
+                                label="计件薪资1"
 
-                        )
-                    })}
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage2"
+                                label="计件薪资2"
+
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage3"
+                                label="计件薪资3"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage4"
+                                label="计件薪资4"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage5"
+                                label="计件薪资5"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage6"
+                                label="计件薪资6"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage7"
+                                label="计件薪资7"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage8"
+                                label="计件薪资8"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage9"
+                                label="计件薪资9"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                name="PieceworkWage8"
+                                label="计件薪资10"
+                            >
+                                <Input disabled={true} />
+                            </FormItem>
+                            <FormItem
+                                label="是否请假"
+                                className="qjia"
+                            >
+                                <Checkbox checked={is_qjia} style={{ marginTop: 5 }} onChange={(e) => {
+                                    const { checked } = e.target
+                                    this.setState({
+                                        is_qjia: checked
+                                    })
+                                }}></Checkbox>
+                                <Select
+                                    style={{ display: is_qjia ? '' : 'none' }}
+
+                                    placeholder="请假类别"
+                                >
+                                    {HY_Department?.map((item, index) => {
+
+                                        return <Option key={index}>{item['d_Name']}</Option>
+                                    })}
+
+                                </Select>
+                            </FormItem>
+                            {/* 请假类别 */}
+
+
+                            {/* 请假时间 */}
+                            <FormItem
+                                label="请假时间"
+                                name="qjsj"
+                                style={{ display: is_qjia ? '' : 'none' }}
+                            >
+                                <Input />
+                            </FormItem>
+                            <FormItem
+                                name="code"
+                                label="工序"
+                                valuePropName="checked"
+                                className="code"
+                            >
+                                {Object.values(process)?.map((item, index) => {
+
+                                    return <Checkbox defaultChecked={true} key={index}>{item['Code']}</Checkbox>
+                                })}
+                            </FormItem>
+                            {/* 工序选择 */}
+                            <FormItem
+                                name="bs_x"
+                                valuePropName="checked"
+                                label="其他倍数"
+                                style={{ display: otherbs_show ? '' : 'none' }}
+                                className="qjia"
+                            >
+                                {Object.values(process)?.map((item, index) => {
+
+                                    return <Checkbox key={index}>{item['Code']}倍数</Checkbox>
+                                })}
+
+                            </FormItem>
+
+
+                        </Form>
+                    </div>
+
+
+
                 </Row>
-                <Divider></Divider>
+
             </div>
         )
 
