@@ -207,7 +207,7 @@ export default class Kaoqin extends Component {
                                                 return (<Option value={item['TeamCode']} key={index}>{item['TeamName']}</Option>)
                                             })}
                                         </Select>
-                                        <Input disabled={true} value={teamContent}></Input>
+                                        <Input value={teamContent}></Input>
                                     </FormItem>
 
                                     <FormItem

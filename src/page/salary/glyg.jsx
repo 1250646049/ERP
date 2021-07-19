@@ -2,13 +2,13 @@ import { Button, message, Row } from "antd"
 import Pubsub from "pubsub-js"
 import React, { Component } from "react"
 import Person from "./person"
-import { selectPerson } from "../../axios/index"
+import { r_selectperon } from "../../axios/index"
 export default class Glyg extends Component {
     state = {
         label: [],
         person: [],
         personObj: {},
-        num: [1],
+        num: [],
         result: {}
     }
 
@@ -18,6 +18,7 @@ export default class Glyg extends Component {
         Pubsub.subscribe("loadProcess", () => {
             this.initContains()
             this.initPerson()
+            this.initSub()
         })
 
 
@@ -25,17 +26,32 @@ export default class Glyg extends Component {
     }
     // 查询所有员工
     initPerson = async () => {
-        let result = await selectPerson()
+        let result = await r_selectperon()
+
         this.setState({
-            person: result['Person']
+            person: result['list']
         }, () => {
 
         })
     }
+    // 初始化子传父监听
+    initSub=()=>{
+        Pubsub.subscribe("additem",(_)=>{
+            let arr = this.state.num
+            arr.push(1)
+            this.setState({
+                num: arr
+            })
+
+
+        })
+
+
+    }
     // 初始化容器
     componentWillUnmount() {
 
-        Pubsub.unsubscribe("toPerson")
+        Pubsub.unsubscribe("additem")
 
     }
     // 设置result
@@ -44,6 +60,27 @@ export default class Glyg extends Component {
         return {
             result
         }
+    }
+    // 提交数据库规则
+    submitData=async()=>{
+        let values = Object.values(this.refs)
+        let arr=[]
+        for (const item of values) {
+            try { 
+              let data=  await item.FormRef.validateFields()
+              data['bs_x']=item.state.bs_x 
+              arr.push(data)
+            }
+            catch {   
+            }
+        }
+        // 判断是否符合规则
+        if(values?.length!==arr.length){
+           return message.error("抱歉，请将内容填写完整！")
+
+        }
+        // 填充数据 准备加入数据库
+        console.log(arr)
     }
     initContains = () => {
         let arr = ['工号', '姓名', '出勤情况', '计时项目1', '计时小时数1', '计时薪资1', '计时项目2', '计时小时数2', '计时薪资2',
@@ -109,14 +146,9 @@ export default class Glyg extends Component {
 
                 </div>
 
-                <Button onClick={async (v) => {
+                <Button onClick={() => {
                     // console.log(this.personRef.testContet());
-                    let values = Object.values(this.refs)
-                    for (const item of values) {
-                        try { await item.FormRef.validateFields() }
-                        catch { }
-
-                    }
+                    this.submitData()
                 }} style={{ marginTop: 15, marginLeft: 15 }} className="next" type="primary">保存 提交数据</Button>
             </div>
         )

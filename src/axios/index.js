@@ -278,3 +278,7 @@ export const selectYusuan=()=>axios.get("/selectYusuan")
 // 插入一条薪资预算
 // ordercode,code,yn
 export const insertYusuan=(ordercode,code,yn)=>axios.post("/insertYusuan",{ordercode,code,yn})
+
+// 查询薪资系统的person  使用redis加快查询速度
+
+export const r_selectperon=()=>axios.get("/r_selectperon")

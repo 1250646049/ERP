@@ -1,12 +1,13 @@
 import React, { Component } from "react"
-import { Row, Col, Divider, Input, message, Select, Badge } from "antd"
+import { Row, Col, Input, message, Select, Badge,Form } from "antd"
 import Checkbox from "antd/lib/checkbox/Checkbox"
-import Form from "antd/lib/form/Form"
+
 import FormItem from "antd/lib/form/FormItem"
-import PubSub from "pubsub-js"
+// import PubSub from "pubsub-js"
 import "./css/person.css"
 const { Option } = Select
-export default class Person extends Component {
+
+export default  class Person extends Component {
 
     state = {
         label: [],
@@ -23,14 +24,16 @@ export default class Person extends Component {
         otherbs_show: false,
         ProjectName: "",//计时项目1
         ProjectName2: "", //计时项目2
-        ProjectName3: "" //计时项目3
-
+        ProjectName3: "", //计时项目3
+        is_next:true,
+        bs_x:[]
     }
 
     componentDidMount() {
 
         this.initContains()
-        this.initData()
+        // this.initData()
+        console.log("dawdsadawdaw");
     }
 
 
@@ -47,15 +50,16 @@ export default class Person extends Component {
 
     }
     // 加载数据
-    initData = () => {
-        PubSub.subscribe("loadProcess", (_) => {
-            this.initForm()
-        })
+    // initData = () => {
+    //     PubSub.subscribe("loadProcess", (_) => {
+           
+    //         this.initForm()
+    //     })
 
 
-    }
-    
-    static getDerivedStateFromProps(props) {
+    // }
+
+    static getDerivedStateFromProps(props, state) {
 
         const { label, person, index, result } = props
         // 获取考勤信息
@@ -95,34 +99,62 @@ export default class Person extends Component {
                 return item['bm'] === '一部'
             })
         }
+       
+        if (state.person?.length) {
+           if(window.localStorage.getItem("_item_")){
+            console.log("personadaw")    
+            return {
+                process: {...JSON.parse(window.localStorage.getItem("_item_"))}
+            }
+           }else {
+               return null;
+           }
 
+        }
         return {
             label,
-            person,
+
             key: index,
             kq,
             project: projectArr,
             subsidyProject: subsidyProjectArr,
-            HY_Department
+            HY_Department,
+            person,
+
         }
     }
 
-    // 输入内容
 
     onInputPerson = (e, type, item) => {
         // 根据id获取用户信息
-        const { value } = e.target
-        if (this.state.person.length === 0) {
-            return message.error("请耐心等待数据渲染！")
-        }
 
-        // try{
-        let obj = this.state.person.find((item) => Number(item['PersonCode']) === Number(value.trim()))
-        this.setState({
-            personObj: obj
-        }, async () => {
+        this.timers && clearTimeout(this.timers)
+        this.timers = window.setTimeout(() => {
+ 
+            const { value } = e.target
+            let data = {}
+            if (this.state.person.length === 0) {
+                return message.error("请耐心等待数据渲染！")
+            }
+            if (value.trim()) {
+                data = this.state.person.find((item) => Number(item['PersonCode']) === Number(value.trim()))
+            }
+            // try{
+            // console.log(this.state.person);
+            this.setState({
+                personObj: data,
+                
+            }, () => {
+           
+                    this.FormRef.setFieldsValue({
+                        // PersonCode:data?.PersonCode
+                        cdepname: data?.['cdutycode'],
+                        name: data?.['PersonName']
+                    })
 
-        })
+               
+            })
+        }, 300)
 
     }
     // 设置计时项目规则
@@ -168,51 +200,53 @@ export default class Person extends Component {
 
         }
         // 乘以 倍数
-        let bs=1.0
-        let bs_input=this.FormRef.getFieldValue("bs")
+        let bs = 1.0
+        let bs_input = this.FormRef.getFieldValue("bs")
 
-        if(Number(bs_input)){
-            bs=Number(bs_input)
+        if (Number(bs_input)) {
+            bs = Number(bs_input)
         }
         this.FormRef.setFieldsValue({
-            jsxj: HourlyWage*bs
+            jsxj: HourlyWage * bs
         })
         this.setDayWage()
     }
     // 设置当日金额
     setDayWage = () => {
-        let jsxj = this.FormRef.getFieldValue("jsxj") ? this.FormRef.getFieldValue("jsxj") : 0
-        let jjxz = this.FormRef.getFieldValue("jjxz") ? this.FormRef.getFieldValue("jjxz") : 0
-        let btxz = this.FormRef.getFieldValue("btxz") ? this.FormRef.getFieldValue("btxz") : 0
+    
+        let jsxj = this.FormRef?.getFieldValue("jsxj") ? this.FormRef?.getFieldValue("jsxj") : 0
+        let jjxz = this.FormRef?.getFieldValue("jjxz") ? this.FormRef?.getFieldValue("jjxz") : 0
+        let btxz = this.FormRef?.getFieldValue("btxz") ? this.FormRef?.getFieldValue("btxz") : 0
 
-        this.FormRef.setFieldsValue({
+        this.FormRef?.setFieldsValue({
             daywage: (jsxj + jjxz + btxz)
         })
+     
 
 
     }
     // 设置倍数
-    setBs=(e)=>{
-    const {value}=e.target
-    let content=Number(value)
-    let bs=1.0
-    if(content ){
-        if(content>8.0){
-            bs=((content- 8.0) * 1.5 + 8.0)/content
+    setBs = (e) => {
+        const { value } = e.target
+        let content = Number(value)
+        let bs = 1.0
+        if (content) {
+            if (content > 8.0) {
+                bs = ((content - 8.0) * 1.5 + 8.0) / content
+            }
         }
-    }    
-    // 
-  // 计件乘以 倍数
+        // 
+        // 计件乘以 倍数
 
-            let bs_input=this.FormRef.getFieldValue("jjxz")
-            let jj=Number(bs_input)
+        let bs_input = this.FormRef.getFieldValue("jjxz")
+        let jj = Number(bs_input)
 
-    this.FormRef.setFieldsValue({
-        bs,
-        jjxz:jj*bs
+        this.FormRef.setFieldsValue({
+            bs,
+            jjxz: jj * bs
 
-    })
-    this.setJsSalary()
+        })
+        this.setJsSalary()
 
 
     }
@@ -234,45 +268,102 @@ export default class Person extends Component {
     // 回显数据
     initForm = () => {
         let values = Object.values(this.state.process)
+       
         // 计时薪资
-        let jsxj = 0
+     
         // 计件薪资
         let jjxz = 0
         // 补贴薪资
 
-        let btxz = 0
+        
         // 当日薪资
 
         let reduce = values.reduce((reduce, item, index) => {
             let cl = item['cl']
             let price = item['UnitPrice']
             reduce[`PieceworkWage${index + 1}`] = 0
+           
             try {
-                reduce[`PieceworkWage${index + 1}`] = Number(cl) + Number(price)
-                jjxz += (Number(cl) + Number(price))
+                reduce[`PieceworkWage${index + 1}`] = (Number(cl) * Number(price)).toFixed(4)
+                jjxz += (Number(cl) * Number(price))
             } catch { }
+            
             return reduce;
         }, {})
 
+        
 
-
+       window.setTimeout(()=>{
+          
+           let bs=this.FormRef.getFieldValue("bs")
+           if(!bs){
+               bs=1.0
+           }
         this.FormRef?.setFieldsValue({
-            ...reduce, jsxj, jjxz, btxz, daywage: jjxz,bs:1.0
+            ...reduce,  jjxz:jjxz*Number(bs)
         })
 
+            this.setDayWage()
+
+       },500)
+
 
 
     }
-    // 监听下一步更新数据
 
+ 
 
-    testContet = () => {
+    // 下拉选择补贴项目
+    selectBUtie = (value, _, type) => {
+        let price = 0;
+        if (!value) price = 0
+        else {
+            let data = this.state.subsidyProject?.find((item) => item['SubsidyName'] === value)
+            price = data['Price']
 
-        return this.state.key
+        }
+
+        this.FormRef.setFieldsValue({
+            [type]: price
+        })
+        this.setTotalButie()
+
     }
+    // 输入框设置补贴金额
+    setButie = (e, type) => {
+
+        const { value } = e.target
+        console.log(value);
+        let price = 0;
+        if (value.trim()) {
+            price = this.FormRef.getFieldValue(type) ? Number(this.FormRef.getFieldValue(type)) : 0
+        }
+
+        this.FormRef.setFieldsValue({
+            [type]: price
+        })
+        window.setTimeout(() => {
+            this.setTotalButie()
+        }, 300)
+
+
+    }
+    // 设置补贴金额
+    setTotalButie = () => {
+
+        let Subsidy1 = this.FormRef.getFieldValue("Subsidy") ? Number(this.FormRef.getFieldValue("Subsidy")) : 0
+        let Subsidy2 = this.FormRef.getFieldValue("Subsidy2") ? Number(this.FormRef.getFieldValue("Subsidy2")) : 0
+        let Subsidy3 = this.FormRef.getFieldValue("Subsidy3") ? Number(this.FormRef.getFieldValue("Subsidy3")) : 0
+        this.FormRef.setFieldsValue({
+            btxz: (Subsidy1 + Subsidy2 + Subsidy3)
+        })
+        // 重新计算当日薪资
+        this.setDayWage()
+    }
+
 
     render() {
-        const { personObj, key, project, subsidyProject, process, HY_Department, is_qjia, otherbs_show, ProjectName } = this.state
+        const { key, project, subsidyProject, process, HY_Department, is_qjia, otherbs_show, ProjectName } = this.state
 
 
         return (
@@ -287,55 +378,75 @@ export default class Person extends Component {
 
                     <div >
 
-                        <Form ref={node => this.FormRef = node} style={{ display: "flex" }} >
-                            <Badge count={key + 1} style={{ verticalAlign: "middle",marginTop:10 }}>
+                        <Form ref={node => this.FormRef = node} style={{ display: "flex" }} name={"name"+key} >
+                            <Badge count={key + 1} style={{ verticalAlign: "middle", marginTop: 10 }}>
 
                             </Badge>
                             <FormItem
-                                name="userCode"
+                                name="PersonCode"
                                 label="工号"
                                 rules={
                                     [
-                                        { required: true, message: "工号不能为空！", trigger: "blur" }
+                                        {required:true,message:"用户工号不能为空！",trigger:"blur"}
                                     ]
                                 }
                             >
-                                <Input onInput={(e) => {
-                                    this.onInputPerson(e, 'PersonCode')
-                                }}></Input>
+
+                                <Input onInput={e => {
+                                    this.onInputPerson(e)
+                                }} />
+                            </FormItem>
+                            <FormItem
+                                name="name"
+                                label="姓名"
+                                rules={
+                                    [
+                                        {required:true,message:"用户姓名不能为空！",trigger:"blur"}
+                                    ]
+                                }
+                            >
+
+                                <Input disabled={true} />
                             </FormItem>
 
                             <FormItem
-                                name="PersonName"
-                                label="用户姓名"
-
+                                label="部门"
+                                name="cdepname"
+                                rules={
+                                    [
+                                        {required:true,message:"用户部门信息不能为空！",trigger:"blur"}
+                                    ]
+                                }
                             >
-                                <Input disabled={true} placeholder={personObj?.PersonName}></Input>
+
+                                <Input disabled={true} />
                             </FormItem>
 
                             <FormItem
                                 label='出勤情况'
                                 name="AttendanceRecord"
+                                style={{ marginLeft: 60 }}
                                 rules={
                                     [
                                         { required: true, message: "出勤情况不能为空！", trigger: "blur" }
                                     ]
                                 }
                             >
-                                <Input onInput={e=>{
+                                <Input onInput={e => {
                                     this.setBs(e)
                                 }}></Input>
                             </FormItem>
 
-                            <FormItem
+                            {/* <FormItem
                                 label="部门"
                                 name="cdutycode"
                             >
                                 <Input disabled={true} placeholder={personObj?.cdutycode}></Input>
-                            </FormItem>
+                            </FormItem> */}
                             <FormItem
                                 name="ProjectName"
                                 label="计时项目1"
+
                             >
                                 <Select
                                     placeholder="计时项目1"
@@ -462,6 +573,7 @@ export default class Person extends Component {
 
                             <FormItem
                                 label="平均工资"
+                                name="pjgz"
                             >
                                 <Select
                                     style={{ width: 151 }}
@@ -529,8 +641,14 @@ export default class Person extends Component {
                             >
                                 <Select
                                     placeholder="选择补贴项目1"
+                                    onSelect={v => {
+                                        // 选择补贴项目
+                                        this.selectBUtie(v, "SubsidyProject", "Subsidy")
+                                    }}
                                 >
+                                    <Option value=""></Option>
                                     {subsidyProject?.map((item, index) => {
+
                                         return (
                                             <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
                                         )
@@ -543,7 +661,9 @@ export default class Person extends Component {
                             <FormItem name="Subsidy"
                                 label="补贴金额"
                             >
-                                <Input />
+                                <Input onInput={e => {
+                                    this.setButie(e, 'Subsidy')
+                                }} />
                             </FormItem>
 
                             <FormItem
@@ -552,7 +672,12 @@ export default class Person extends Component {
                             >
                                 <Select
                                     placeholder="选择补贴项目2"
+                                    onSelect={v => {
+                                        // 选择补贴项目
+                                        this.selectBUtie(v, "SubsidyProject2", "Subsidy2")
+                                    }}
                                 >
+                                    <Option value=""></Option>
                                     {subsidyProject?.map((item, index) => {
                                         return (
                                             <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
@@ -565,15 +690,23 @@ export default class Person extends Component {
                                 name="Subsidy2"
                                 label="补贴金额2"
                             >
-                                <Input />
+                                <Input onInput={e => {
+                                    this.setButie(e, 'Subsidy2')
+                                }} />
                             </FormItem>
                             <FormItem
                                 name="SubsidyProject3"
                                 label="补贴项目3"
+
                             >
                                 <Select
                                     placeholder="选择补贴项目3"
+                                    onSelect={v => {
+                                        // 选择补贴项目
+                                        this.selectBUtie(v, "SubsidyProject3", "Subsidy3")
+                                    }}
                                 >
+                                    <Option value=""></Option>
                                     {subsidyProject?.map((item, index) => {
                                         return (
                                             <Option key={index} value={item['SubsidyName']}>{item['SubsidyName']}</Option>
@@ -586,7 +719,9 @@ export default class Person extends Component {
                                 name="Subsidy3"
                                 label="补贴金额3"
                             >
-                                <Input />
+                                <Input onInput={e => {
+                                    this.setButie(e, 'Subsidy3')
+                                }} />
                             </FormItem>
                             <FormItem
                                 name="PieceworkWage1"
@@ -660,20 +795,26 @@ export default class Person extends Component {
                                         is_qjia: checked
                                     })
                                 }}></Checkbox>
+
+                            </FormItem>
+                            {/* 请假类别 */}
+                            <FormItem
+                                label="请假类别"
+                                name="qjlb"
+                                style={{ display: is_qjia ? '' : 'none' }}
+
+                            >
                                 <Select
-                                    style={{ display: is_qjia ? '' : 'none' }}
 
                                     placeholder="请假类别"
                                 >
                                     {HY_Department?.map((item, index) => {
 
-                                        return <Option key={index}>{item['d_Name']}</Option>
+                                        return <Option key={index} value={item['d_Name']}>{item['d_Name']}</Option>
                                     })}
 
                                 </Select>
                             </FormItem>
-                            {/* 请假类别 */}
-
 
                             {/* 请假时间 */}
                             <FormItem
@@ -689,6 +830,7 @@ export default class Person extends Component {
                                 valuePropName="checked"
                                 className="code"
                             >
+                                
                                 {Object.values(process)?.map((item, index) => {
 
                                     return <Checkbox defaultChecked={true} key={index}>{item['Code']}</Checkbox>
@@ -697,16 +839,35 @@ export default class Person extends Component {
                             {/* 工序选择 */}
                             <FormItem
                                 name="bs_x"
+
                                 valuePropName="checked"
                                 label="其他倍数"
-                                style={{ display: otherbs_show ? '' : 'none' }}
-                                className="qjia"
+                                style={{ display: otherbs_show ? '' : 'none',marginLeft:60 }}
+                                className="code"
                             >
+                           
                                 {Object.values(process)?.map((item, index) => {
 
-                                    return <Checkbox key={index}>{item['Code']}倍数</Checkbox>
+                                    return <Checkbox  onChange={e=>{
+                                        const {checked}=e.target
+                                        let arr=this.state.bs_x
+                                        if(checked){
+                                            if(arr.indexOf(item['Code'])===-1){
+                                                arr.push(item['Code'])
+                                            }
+                                        }else {
+                                            if(arr.indexOf(item['Code'])!==-1){
+                                               arr= arr.filter((items)=>item['Code']!==items)
+                                            }
+                                        }
+                                        this.setState({
+                                            bs_x:arr
+                                        },()=>{
+                                            console.log(this.state.bs_x)
+                                        })
+                                    }} key={index}>{item['Code']}倍数</Checkbox>
                                 })}
-
+                            
                             </FormItem>
 
 

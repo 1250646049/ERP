@@ -1,5 +1,5 @@
-import { Col, Row, AutoComplete, Input, Table } from "antd"
-import Modal from "antd/lib/modal/Modal";
+import { Col, Row, AutoComplete, Input } from "antd"
+
 import React, { Component } from "react"
 
 
@@ -12,7 +12,7 @@ export default class Gxgj extends Component {
         options: [],
         obj: {},
         visible: false,
-        finaloption:[]
+        finaloption: []
     }
 
 
@@ -72,45 +72,62 @@ export default class Gxgj extends Component {
     //选中内容
     selectContent = (index, item) => {
         // 本地缓存
-        let localitem = window.localStorage.getItem("_item_")
-        let content = this.state.process.find((items) => items['Code'] === item)
-        let obj={}
-        if (!localitem) {
+        this.timer && clearTimeout(this.timer)
+        this.timer = window.setTimeout(() => {
+            let localitem = window.localStorage.getItem("_item_")
+            let content = this.state.process.find((items) => items['Code'] === item)
+            let obj = {}
+            console.log(content,"content")
+            if (!content) {
+                if(localitem) {
+                    obj=JSON.parse(localitem)
+                    
+                    delete obj[index]
+                    window.localStorage.setItem("_item_", JSON.stringify(obj))
+                }
 
-           obj = {
-                [index]: content
+            } else {
+
+                if (!localitem) {
+
+                    obj = {
+                        [index]: content
+                    }
+                    window.localStorage.setItem("_item_", JSON.stringify(obj))
+                } else {
+                    obj = JSON.parse(localitem)
+                    obj[index] = content;
+                    window.localStorage.setItem("_item_", JSON.stringify(obj))
+                    // 保存状态
+
+                }
             }
-            window.localStorage.setItem("_item_", JSON.stringify(obj))
-        } else {
-           obj = JSON.parse(localitem)
-            obj[index] = content;
-            window.localStorage.setItem("_item_", JSON.stringify(obj))
-            // 保存状态
+      
 
-        }
-        this.setState({
-            obj,
-            options:this.state.finaloption
-        }, () => {
-            console.log(this.state.obj);
-        })
+            this.setState({
+                obj,
+                options: this.state.finaloption
+            }, () => {
+
+            })
+        }, 300)
     }
     // 写入产量
-    onInput=(e,item)=>{
+    onInput = (e, item) => {
 
-       window.setTimeout(()=>{
-        let obj=window.localStorage.getItem("_item_")?JSON.parse(window.localStorage.getItem("_item_")):{}
-        obj[item]['cl']=e.target?.value
-        window.localStorage.setItem("_item_",JSON.stringify(obj))
-        this.setState({
-            obj
-        })
-       },500)
+        window.setTimeout(() => {
+            let obj = window.localStorage.getItem("_item_") ? JSON.parse(window.localStorage.getItem("_item_")) : {}
+            obj[item]['cl'] = e.target?.value
+            window.localStorage.setItem("_item_", JSON.stringify(obj))
+            this.setState({
+                obj
+            })
+        }, 500)
 
 
     }
     render() {
-        const { num, options, obj, visible } = this.state
+        const { num, options, obj } = this.state
         return (
             <div className="Gxgj">
 
@@ -125,8 +142,8 @@ export default class Gxgj extends Component {
                             return (
                                 <Col span={2} key={item}  >
                                     <AutoComplete
-                                    placeholder={obj[item]?.Code}
-                                     
+                                        placeholder={obj[item]?.Code}
+
                                         options={options}
                                         style={{ width: "100%" }}
                                         onSearch={(v) => {
@@ -136,15 +153,15 @@ export default class Gxgj extends Component {
                                             })
 
                                         }}
-                                        onChange={()=>{
-                                           
+                                        onChange={(v) => {
+                                            this.selectContent(item, v)
                                         }}
-                                        onSelect={
-                                            (v) => {
+                                        // onSelect={
+                                        //     (v) => {
 
-                                                this.selectContent(item, v)
-                                            }
-                                        }
+                                        //         this.selectContent(item, v)
+                                        //     }
+                                        // }
                                     >
 
                                     </AutoComplete>
@@ -186,7 +203,7 @@ export default class Gxgj extends Component {
 
                                 return (
                                     <Col span={2} key={item}  >
-                                        <Input value={obj[item]?.['UnitPrice']} disabled={true}></Input>
+                                        <Input  value={obj[item]?.['UnitPrice']} disabled={true}></Input>
 
                                     </Col>
                                 )
@@ -206,8 +223,8 @@ export default class Gxgj extends Component {
 
                                 return (
                                     <Col span={2} key={item}  >
-                                        <Input placeholder={obj[item]?.['cl']} disabled={!obj[item]?true:false} onInput={(e)=>{
-                                            this.onInput(e,item)
+                                        <Input placeholder={obj[item]?.['cl']} disabled={!obj[item] ? true : false} onInput={(e) => {
+                                            this.onInput(e, item)
                                         }}></Input>
 
                                     </Col>
@@ -221,7 +238,7 @@ export default class Gxgj extends Component {
 
                 </div>
                 {/* utils */}
-                <div className="utils">
+                {/* <div className="utils">
                     <Modal
                         title="检测到您还未保存的数据，是否加载上一次的数据？"
                         visible={visible}
@@ -261,7 +278,7 @@ export default class Gxgj extends Component {
                         </div>
                     </Modal>
 
-                </div>
+                </div> */}
             </div>
         )
 

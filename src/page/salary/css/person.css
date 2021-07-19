@@ -1,5 +1,5 @@
 .persons {
-  height: 60px;
+  border-bottom: 1px solid #333;
 }
 .persons .ant-form-item {
   width: 240px;
@@ -12,8 +12,17 @@
   width: 83px;
   margin: 0 3px;
 }
-.persons .code .ant-form-item-control-input-content {
+.persons .code {
+  width: auto;
+}
+.persons .code .ant-form-item-control-input {
+  margin: 0 20px;
+}
+.persons .code .ant-form-item-control-input .ant-form-item-control-input-content {
   display: flex;
+}
+.persons .code .ant-form-item-control-input .ant-form-item-control-input-content label {
+  white-space: nowrap;
 }
 .persons .qjia {
   display: flex;
